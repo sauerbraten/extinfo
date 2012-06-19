@@ -37,7 +37,7 @@ type PlayerInfo struct {
 	Deaths int
 	Teamkills int
 	Damage int			// damage ?!?
-	Healths int
+	Health int
 	Armour int
 	Weapon string
 	Privilege string		// "none", "master" or "admin"
@@ -56,7 +56,7 @@ type PlayerInfoRaw struct {
 	Deaths int
 	Teamkills int
 	Damage int			// damage ?!?
-	Healths int
+	Health int
 	Armour int
 	Weapon int
 	Privilege int			// 0 ("none"), 1 ("master") or 2 ("admin")
