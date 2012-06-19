@@ -77,7 +77,7 @@ The output should be something like this:
 	
 		fmt.Print("Player Information:\n")
 		fmt.Printf("Name:\t\t\t\t%v\n", playerInfo.Name)
-		fmt.Printf("Client Number:\t\t\t%v\n", playerInfo.ClientNum)		fmt.Printf("Game Mode:\t\t\t%v\n", playerInfo.GameMode)
+		fmt.Printf("Client Number:\t\t\t%v\n", playerInfo.ClientNum)	
 		fmt.Printf("Ping:\t\t\t\t%v\n", playerInfo.Ping)
 		fmt.Printf("Team:\t\t\t\t%v\n", playerInfo.Team)
 		fmt.Printf("Frags:\t\t\t\t%v\n", playerInfo.Frags)
