@@ -50,7 +50,6 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 		return []byte{}, err
 	}
 
-
 	// receive response from server
 	response := make([]byte, 64)
 	_, err = bufconn.Read(response)
