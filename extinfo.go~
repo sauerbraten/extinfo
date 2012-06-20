@@ -4,7 +4,6 @@ package extinfo
 import (
 	"errors"
 	"net"
-	"fmt"
 )
 
 // the current position in a response ([]byte)
@@ -125,26 +124,7 @@ func GetPlayerInfo(addr string, port int, clientNum int) (PlayerInfo, error) {
 	// throw away 7 first ints (EXTENDED_INFORMATION, PLAYERSTATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server PLAYERSTATS_RESP_STATS byte)
 	response = response[7:]
 
-	positionInResponse = 0
-
-
-	playerInfo.ClientNum = dumpInt(response)
-	playerInfo.Ping = dumpInt(response)
-	playerInfo.Name = dumpString(response)
-	playerInfo.Team = dumpString(response)
-	playerInfo.Frags = dumpInt(response)
-	playerInfo.Flags = dumpInt(response)
-	playerInfo.Deaths = dumpInt(response)
-	playerInfo.Teamkills = dumpInt(response)
-	playerInfo.Damage = dumpInt(response)
-	playerInfo.Health = dumpInt(response)
-	playerInfo.Armour = dumpInt(response)
-	playerInfo.Weapon = getWeaponName(dumpInt(response))
-	playerInfo.Privilege = getPrivilegeName(dumpInt(response))
-	playerInfo.State = getStateName(dumpInt(response))
-	// IP from next 4 bytes
-	ip := response[positionInResponse:positionInResponse+4]
-	playerInfo.IP = net.IPv4(ip[0], ip[1], ip[2], ip[3])
+	playerInfo = parsePlayerInfo(response)
 
 	return playerInfo, nil
 }
@@ -188,11 +168,47 @@ func GetPlayerInfoRaw(addr string, port int, clientNum int) (PlayerInfoRaw, erro
 	return playerInfoRaw, nil
 }
 
+func parsePlayerInfo(response []byte) PlayerInfo {
+	playerInfo := PlayerInfo{}
+
+	fmt.Println(response)
+	positionInResponse = 0
+
+	playerInfo.ClientNum = dumpInt(response)
+	playerInfo.Ping = dumpInt(response)
+	playerInfo.Name = dumpString(response)
+	playerInfo.Team = dumpString(response)
+	playerInfo.Frags = dumpInt(response)
+	playerInfo.Flags = dumpInt(response)
+	playerInfo.Deaths = dumpInt(response)
+	playerInfo.Teamkills = dumpInt(response)
+	playerInfo.Damage = dumpInt(response)
+	playerInfo.Health = dumpInt(response)
+	playerInfo.Armour = dumpInt(response)
+	playerInfo.Weapon = getWeaponName(dumpInt(response))
+	playerInfo.Privilege = getPrivilegeName(dumpInt(response))
+	playerInfo.State = getStateName(dumpInt(response))
+	// IP from next 4 bytes
+	ip := response[positionInResponse:positionInResponse+4]
+	playerInfo.IP = net.IPv4(ip[0], ip[1], ip[2], ip[3])
+
+	return playerInfo
+}
+
 func GetAllPlayerInfo(addr string, port int) ([]PlayerInfo, error) {
 	allPlayerInfo := []PlayerInfo{}
 	response, err := queryServer(addr, port, buildRequest(EXTENDED_INFORMATION, PLAYERSTATS, -1))
 	if err != nil {
 		return allPlayerInfo, err
 	}
-	fmt.Print(response)
+
+	// response is multiple 64-byte responses, one for each player
+	playerCount := len(response) / 64
+
+	// parse each 64 byte packet on its own and append to allPlayerInfo
+	for i := 0; i < playerCount; i++ {
+		allPlayerInfo = append(allPlayerInfo, parsePlayerInfo(response[i*64:(i*64)+64]))
+	}
+
+	return allPlayerInfo, nil
 }

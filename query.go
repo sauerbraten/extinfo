@@ -3,6 +3,7 @@ package extinfo
 import (
 	"net"
 	"bufio"
+	"bytes"
 )
 
 // builds a request
@@ -49,6 +50,7 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 		return []byte{}, err
 	}
 
+
 	// receive response from server
 	response := make([]byte, 64)
 	_, err = bufconn.Read(response)
@@ -56,20 +58,32 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	// first byte = 0, second byte = 1 --> player info response, wait for following packages
-	if response[0] == 0x00 && response[1] == 0x01 {
+	// first byte = 0, second byte = 1, 4th byte 0 (no error) --> player info response with no error, wait for following packages
+	if response[0] == 0x00 && response[1] == 0x01 && response[5] == 0x00 {
 		// if third byte = -1, information was queried for all players --> multiple packages following
-		if response[2] == 0x81 {
-			return response, nil
+		if response[2] == 0xFF {
+			// get player cns out of the reponse: 7 first bytes are EXTENDED_INFORMATION, PLAYERSTATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server PLAYERSTATS_RESP_STATS byte
+			playerCns := response[7:bytes.Index(response[7:], []byte{0})]
+
+			playerInfos := make([]byte, 0)
+			for _ = range playerCns {
+				response = make([]byte, 64)
+				_, err = bufconn.Read(response)
+				playerInfos = append(playerInfos, response...)
+				if err != nil {
+					return playerInfos, err
+				}
+			}
+			return playerInfos, nil
 		}
 
 		// else, only one n was asked for --> one package following
-		playerStatsResponse := make([]byte, 64)
-		_, err = bufconn.Read(playerStatsResponse)
+		playerInfoResponse := make([]byte, 64)
+		_, err = bufconn.Read(playerInfoResponse)
 		if err != nil {
 			return []byte{}, err
 		}
-		return playerStatsResponse, nil
+		return playerInfoResponse, nil
 	}
 	return response, nil
 }
