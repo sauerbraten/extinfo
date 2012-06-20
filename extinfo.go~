@@ -195,5 +195,4 @@ func GetAllPlayerInfo(addr string, port int) ([]PlayerInfo, error) {
 		return allPlayerInfo, err
 	}
 	fmt.Print(response)
-	return allPlayerInfo, nil
 }
