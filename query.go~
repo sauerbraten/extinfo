@@ -3,6 +3,7 @@ package extinfo
 import (
 	"net"
 	"bufio"
+	"fmt"
 	"bytes"
 )
 
@@ -62,7 +63,9 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 		// if third byte = -1, information was queried for all players --> multiple packages following
 		if response[2] == 0xFF {
 			// get player cns out of the reponse: 7 first bytes are EXTENDED_INFORMATION, PLAYERSTATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server PLAYERSTATS_RESP_STATS byte
-			playerCns := response[7:bytes.Index(response[7:], []byte{0})]
+
+			response = bytes.TrimRight(response, "\x00")
+			playerCns := response[7:]
 
 			playerInfos := make([]byte, 0)
 			for _ = range playerCns {

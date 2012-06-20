@@ -168,6 +168,7 @@ func GetPlayerInfoRaw(addr string, port int, clientNum int) (PlayerInfoRaw, erro
 	return playerInfoRaw, nil
 }
 
+// own function, because it is used in GetPlayerInfo() + GetAllPlayerInfo()
 func parsePlayerInfo(response []byte) PlayerInfo {
 	playerInfo := PlayerInfo{}
 
@@ -188,8 +189,8 @@ func parsePlayerInfo(response []byte) PlayerInfo {
 	playerInfo.Privilege = getPrivilegeName(dumpInt(response))
 	playerInfo.State = getStateName(dumpInt(response))
 	// IP from next 4 bytes
-	ip := response[positionInResponse:positionInResponse+4]
-	playerInfo.IP = net.IPv4(ip[0], ip[1], ip[2], ip[3])
+	ipBytes := response[positionInResponse:positionInResponse+4]
+	playerInfo.IP = net.IPv4(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3])
 
 	return playerInfo
 }
@@ -204,9 +205,9 @@ func GetAllPlayerInfo(addr string, port int) ([]PlayerInfo, error) {
 	// response is multiple 64-byte responses, one for each player
 	playerCount := len(response) / 64
 
-	// parse each 64 byte packet on its own and append to allPlayerInfo
+	// parse each 64 byte packet (without the first 7 bytes) on its own and append to allPlayerInfo
 	for i := 0; i < playerCount; i++ {
-		allPlayerInfo = append(allPlayerInfo, parsePlayerInfo(response[i*64:(i*64)+64]))
+		allPlayerInfo = append(allPlayerInfo, parsePlayerInfo(response[i*64+7:(i*64)+64]))
 	}
 
 	return allPlayerInfo, nil
