@@ -61,16 +61,19 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 	if response[0] == 0x00 && response[1] == 0x01 && response[5] == 0x00 {
 		// if third byte = -1, information was queried for all players --> multiple packages following
 		if response[2] == 0xFF {
-			// get player cns out of the reponse: 7 first bytes are EXTENDED_INFORMATION, PLAYERSTATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server PLAYERSTATS_RESP_STATS byte
-
+			// trim null bytes
 			response = bytes.TrimRight(response, "\x00")
+
+			// get player cns out of the reponse: 7 first bytes are EXTENDED_INFORMATION, PLAYERSTATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server PLAYERSTATS_RESP_STATS byte
 			playerCns := response[7:]
 
+			// for each client, receive a packet and append it to the response
 			playerInfos := make([]byte, 0)
 			for _ = range playerCns {
 				response = make([]byte, 64)
 				_, err = bufconn.Read(response)
 				playerInfos = append(playerInfos, response...)
+				// on error, return what we already have
 				if err != nil {
 					return playerInfos, err
 				}
@@ -78,7 +81,7 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 			return playerInfos, nil
 		}
 
-		// else, only one n was asked for --> one package following
+		// else, only one cn was asked for --> one package following
 		playerInfoResponse := make([]byte, 64)
 		_, err = bufconn.Read(playerInfoResponse)
 		if err != nil {

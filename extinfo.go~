@@ -189,12 +189,13 @@ func parsePlayerInfo(response []byte) PlayerInfo {
 	playerInfo.Privilege = getPrivilegeName(dumpInt(response))
 	playerInfo.State = getStateName(dumpInt(response))
 	// IP from next 4 bytes
-	ip := response[positionInResponse:positionInResponse+4]
-	playerInfo.IP = net.IPv4(ip[0], ip[1], ip[2], ip[3])
+	ipBytes := response[positionInResponse:positionInResponse+4]
+	playerInfo.IP = net.IPv4(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3])
 
 	return playerInfo
 }
 
+// returns the Information of all Players (including spectators) as a []PlayerInfo
 func GetAllPlayerInfo(addr string, port int) ([]PlayerInfo, error) {
 	allPlayerInfo := []PlayerInfo{}
 	response, err := queryServer(addr, port, buildRequest(EXTENDED_INFORMATION, PLAYERSTATS, -1))

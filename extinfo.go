@@ -195,6 +195,7 @@ func parsePlayerInfo(response []byte) PlayerInfo {
 	return playerInfo
 }
 
+// GetAllPlayerInfo returns the Information of all Players (including spectators) as a []PlayerInfo
 func GetAllPlayerInfo(addr string, port int) ([]PlayerInfo, error) {
 	allPlayerInfo := []PlayerInfo{}
 	response, err := queryServer(addr, port, buildRequest(EXTENDED_INFORMATION, PLAYERSTATS, -1))
