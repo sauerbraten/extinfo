@@ -11,9 +11,9 @@ func buildRequest(informationType int, extendedInformationType int, clientNum in
 	request := make([]byte, 0)
 
 	// extended info request
-	if informationType == 0 {
+	if informationType == EXTENDED_INFORMATION {
 		// player stats has to include the clientNum
-		if extendedInformationType == 1 {
+		if extendedInformationType == PLAYERSTATS {
 			request = append(request, byte(informationType), byte(extendedInformationType), byte(clientNum))
 		} else {
 			request = append(request, byte(informationType), byte(extendedInformationType))

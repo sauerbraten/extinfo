@@ -35,7 +35,8 @@ func GetTeamsScores(addr string, port int) (TeamsScores, error) {
 func GetTeamsScoresRaw(addr string, port int) (TeamsScoresRaw, error) {
 	teamsScoresRaw := TeamsScoresRaw{}
 
-	response, err := queryServer(addr, port, buildRequest(EXTENDED_INFORMATION, 2, 0))
+	request := buildRequest(EXTENDED_INFORMATION, TEAMSCORE, 0)
+	response, err := queryServer(addr, port, request)
 	if err != nil {
 		return teamsScoresRaw, err
 	}
@@ -70,14 +71,16 @@ func GetTeamsScoresRaw(addr string, port int) (TeamsScoresRaw, error) {
 
 	name := ""
 	score := 0
+	numBases := 0
 
-	for positionInResponse < len(response) {
+	for response[positionInResponse] != 0x00 {
 		name = dumpString(response)
 		score = dumpInt(response)
+		numBases = dumpInt(response)
 
 		bases := make([]int, 0)
 
-		for i := 0; i < dumpInt(response); i++ {
+		for i := 0; i < numBases; i++ {
 			bases = append(bases, dumpInt(response))
 		}
 
