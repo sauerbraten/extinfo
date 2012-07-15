@@ -44,7 +44,7 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 	// set up a buffered reader
 	bufconn := bufio.NewReader(conn)
 
-	// send '1' to server
+	// send the request to server
 	_, err = conn.Write(request)
 	if err != nil {
 		return []byte{}, err

@@ -8,6 +8,7 @@ import (
 
 // the current position in a response ([]byte)
 // needed, since values are encoded in variable amount of bytes
+// global to not have to pass around an int on every dump
 var positionInResponse int
 
 // Constants describing the type of information to query for
@@ -20,20 +21,83 @@ const (
 const (
 	UPTIME = 0
 	PLAYERSTATS = 1
-	TEAM_SCORE = 2
+	TEAMSCORE = 2
 )
 
+// GetTeamsScores queries a Sauerbraten server at addr on port for the teams' names and scores and returns the parsed response and/or an error in case something went wrong or the server is not running a team mode. Parsed response means that the int value sent as game mode is translated into the human readable name, e.g. '12' -> "insta ctf".
+func GetTeamsScores(addr string, port int) (TeamsScores, error) {
+	teamsScoresRaw, err := GetTeamsScoresRaw(addr, port)
+	teamsScores := TeamsScores{getGameModeName(teamsScoresRaw.GameMode), teamsScoresRaw.SecsLeft, teamsScoresRaw.Scores}
+	return teamsScores, err
+}
 
-// GetBasicInfo queries a Sauerbraten server at addr on port and returns the parsed response or an error in case something went wrong. Parsed response means that the int values sent as game mode and master mode are translated into the human readable name, e.g. '12' -> "insta ctf".
-func GetBasicInfo(addr string, port int) (BasicInfo, error) {
-	response, err := queryServer(addr, port, buildRequest(BASIC_INFORMATION, 0, 0))
+// GetTeamsScoresRaw queries a Sauerbraten server at addr on port for the teams' names and scores and returns the raw response and/or an error in case something went wrong or the server is not running a team mode.
+func GetTeamsScoresRaw(addr string, port int) (TeamsScoresRaw, error) {
+	teamsScoresRaw := TeamsScoresRaw{}
+
+	response, err := queryServer(addr, port, buildRequest(EXTENDED_INFORMATION, 2, 0))
 	if err != nil {
-		return BasicInfo{}, err
+		return teamsScoresRaw, err
 	}
 
 	positionInResponse = 0
 
+	// first int is EXTENDED_INFORMATION = 0
+	_ = dumpInt(response)
+
+	// next int is TEAMSCORE = 2
+	_ = dumpInt(response)
+
+	// next int is EXT_ACK = -1
+	_ = dumpInt(response)
+
+	// next int is EXT_VERSION
+	_ = dumpInt(response)
+
+	// next int describes wether the server runs a team mode or not
+	isTeamMode := true
+	if dumpInt(response) != 0 {
+		isTeamMode = false
+	}
+
+	teamsScoresRaw.GameMode = dumpInt(response)
+	teamsScoresRaw.SecsLeft = dumpInt(response)
+
+	if !isTeamMode {
+		// no team scores following
+		return teamsScoresRaw, errors.New("server is not running a team mode")
+	}
+
+	name := ""
+	score := 0
+
+	for positionInResponse < len(response) {
+		name = dumpString(response)
+		score = dumpInt(response)
+
+		bases := make([]int, 0)
+
+		for i := 0; i < dumpInt(response); i++ {
+			bases = append(bases, dumpInt(response))
+		}
+
+		teamsScoresRaw.Scores = append(teamsScoresRaw.Scores, TeamScore{name, score, bases})
+	}
+
+	return teamsScoresRaw, nil
+}
+
+
+// GetBasicInfo queries a Sauerbraten server at addr on port and returns the parsed response or an error in case something went wrong. Parsed response means that the int values sent as game mode and master mode are translated into the human readable name, e.g. '12' -> "insta ctf".
+func GetBasicInfo(addr string, port int) (BasicInfo, error) {
 	basicInfo := BasicInfo{}
+
+	response, err := queryServer(addr, port, buildRequest(BASIC_INFORMATION, 0, 0))
+	if err != nil {
+		return basicInfo, err
+	}
+
+	positionInResponse = 0
 
 	// first int is BASIC_INFORMATION = 1
 	_ = dumpInt(response)
@@ -55,16 +119,16 @@ func GetBasicInfo(addr string, port int) (BasicInfo, error) {
 
 // GetBasicInfoRaw queries a Sauerbraten server at addr on port and returns the raw response or an error in case something went wrong. Raw response means that the int values sent as game mode and master mode are NOT translated into the human readable name.
 func GetBasicInfoRaw(addr string, port int) (BasicInfoRaw, error) {
+	basicInfoRaw := BasicInfoRaw{}
+
 	response, err := queryServer(addr, port, buildRequest(BASIC_INFORMATION, 0, 0))
 	if err != nil {
-		return BasicInfoRaw{}, err
+		return basicInfoRaw, err
 	}
 
 	positionInResponse = 0
 
-	basicInfoRaw := BasicInfoRaw{}
-
-	// first int is always '1'
+	// first int is BASIC_INFORMATION = 1
 	_ = dumpInt(response)
 	basicInfoRaw.NumberOfClients = dumpInt(response)
 	// next int is always 5, the number of additional attributes after the playercount and the strings for map and description
@@ -90,7 +154,7 @@ func GetUptime(addr string, port int) (int, error) {
 
 	positionInResponse = 0
 
-	// first int is 0
+	// first int is EXTENDED_INFORMATION
 	_ = dumpInt(response)
 
 	// next int is EXT_UPTIME = 0
@@ -111,6 +175,7 @@ func GetUptime(addr string, port int) (int, error) {
 // GetPlayerInfo returns the parsed information about the player with the given clientNum.
 func GetPlayerInfo(addr string, port int, clientNum int) (PlayerInfo, error) {
 	playerInfo := PlayerInfo{}
+
 	response, err := queryServer(addr, port, buildRequest(EXTENDED_INFORMATION, PLAYERSTATS, clientNum))
 	if err != nil {
 		return playerInfo, err
@@ -132,6 +197,7 @@ func GetPlayerInfo(addr string, port int, clientNum int) (PlayerInfo, error) {
 // GetPlayerInfoRaw returns the raw information about the player with the given clientNum.
 func GetPlayerInfoRaw(addr string, port int, clientNum int) (PlayerInfoRaw, error) {
 	playerInfoRaw := PlayerInfoRaw{}
+
 	response, err := queryServer(addr, port, buildRequest(EXTENDED_INFORMATION, PLAYERSTATS, clientNum))
 	if err != nil {
 		return playerInfoRaw, err
@@ -198,6 +264,7 @@ func parsePlayerInfo(response []byte) PlayerInfo {
 // GetAllPlayerInfo returns the Information of all Players (including spectators) as a []PlayerInfo
 func GetAllPlayerInfo(addr string, port int) ([]PlayerInfo, error) {
 	allPlayerInfo := []PlayerInfo{}
+
 	response, err := queryServer(addr, port, buildRequest(EXTENDED_INFORMATION, PLAYERSTATS, -1))
 	if err != nil {
 		return allPlayerInfo, err
