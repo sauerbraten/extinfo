@@ -49,7 +49,7 @@ Here is code to get you the state of the PSL1 server:
 
 The output should be something like this:
 
-	Parsed ExtInfo:
+	Basic Server Information:
 	Description:				PSL.sauerleague.org
 	Master Mode:				auth
 	Game Mode:					insta ctf
