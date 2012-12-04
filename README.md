@@ -41,8 +41,8 @@ Here is code to get you the state of the PSL1 server:
 		fmt.Printf("Master Mode:\t\t\t%v\n", pslBasicInfo.MasterMode)
 		fmt.Printf("Game Mode:\t\t\t%v\n", pslBasicInfo.GameMode)
 		fmt.Printf("Map:\t\t\t\t%v\n", pslBasicInfo.Map)
-		fmt.Printf("Players:\t\t\t%v\n", pslBasicInfo.NumberOfPlayers)
-		fmt.Printf("Maximum Number of Players:\t%v\n", 	pslBasicInfo.MaxNumberOfPlayers)
+		fmt.Printf("Players:\t\t\t%v\n", pslBasicInfo.NumberOfClients)
+		fmt.Printf("Maximum Number of Players:\t%v\n", 	pslBasicInfo.MaxNumberOfClients)
 		fmt.Printf("Time Left (seconds):\t\t%v\n", pslBasicInfo.SecsLeft)
 		fmt.Printf("Protocol Version:\t\t%v\n", pslBasicInfo.ProtocolVersion)
 	}
