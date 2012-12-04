@@ -7,16 +7,16 @@ import (
 )
 
 // builds a request
-func buildRequest(informationType int, extendedInformationType int, clientNum int) []byte {
+func buildRequest(informationType int, extendedInfoType int, clientNum int) []byte {
 	request := make([]byte, 0)
 
 	// extended info request
-	if informationType == EXTENDED_INFORMATION {
+	if informationType == extendedInfo {
 		// player stats has to include the clientNum
-		if extendedInformationType == PLAYERSTATS {
-			request = append(request, byte(informationType), byte(extendedInformationType), byte(clientNum))
+		if extendedInfoType == playerStatsInfo {
+			request = append(request, byte(informationType), byte(extendedInfoType), byte(clientNum))
 		} else {
-			request = append(request, byte(informationType), byte(extendedInformationType))
+			request = append(request, byte(informationType), byte(extendedInfoType))
 		}
 	}
 
@@ -64,7 +64,7 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 			// trim null bytes
 			response = bytes.TrimRight(response, "\x00")
 
-			// get player cns out of the reponse: 7 first bytes are EXTENDED_INFORMATION, PLAYERSTATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server PLAYERSTATS_RESP_STATS byte
+			// get player cns out of the reponse: 7 first bytes are extendedInfo, playerStatsInfo, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server playerStatsInfo_RESP_STATS byte
 			playerCns := response[7:]
 
 			// for each client, receive a packet and append it to the response
