@@ -61,12 +61,7 @@ The output should be something like this:
 
 `GetPlayerInfo()` and `GetPlayerInfoRaw()` work pretty much the same; here is an example to get the player information of the player with the cn 4 on PSL1:
 
-	package main
-	
-	import (
-		"fmt"
-		"github.com/sauerbraten/extinfo"
-	)
+	...
 	
 	func main() {
 		playerInfo, err := extinfo.GetPlayerInfo("sauerleague.org", 10000, 4)
@@ -96,3 +91,45 @@ Output would look like this:
 	Frags:				37
 	Privilege:			none
 	IP:					123.234.345.0
+
+There is also `GetTeamsScores()` which returns all teams' scores (a TeamsScores containing a TeamScore (team score) for every team in the current game). Example code:
+
+	...
+	
+	func main() {
+		scores, err := GetTeamsScores("sauerleague.org", 10000)
+		if err != nil {
+			fmt.Print("Error getting teams' scores: ", err)
+			return
+		}
+
+		fmt.Printf("Game Mode:\t\t%v\n", scores.GameMode)
+		fmt.Printf("Time Left (seconds):\t%v\n", scores.SecsLeft)
+		fmt.Print("Scores:\n")
+
+		for _, score := range scores.Scores {
+			fmt.Printf("\tTeam:\t\t%v\n", score.Name)
+			fmt.Printf("\tScore:\t\t%v\n", score.Score)
+
+			if scores.GameMode == "capture" || scores.GameMode == "regen capture" {
+				fmt.Printf("\tBases:\t\t%v\n", score.Bases)
+			}
+		}
+	}
+
+Output:
+
+	Game Mode:				insta ctf
+	Time Left (seconds):	101
+	Scores:
+			Team:			good
+			Score:			1
+			Team:			evil
+			Score:			1
+
+
+More methods:
+
+- `GetUptime()`: returns the amount of seconds the sauerbraten server is running
+- `GetAllPlayerInfo()`: returns a PlayerInfo for every client connected to the server
+- `GetTeamsScoresRaw()`: returns a TeamsScoresRaw containing a TeamScore for every team in the current game

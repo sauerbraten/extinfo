@@ -14,14 +14,14 @@ var positionInResponse int
 // Constants describing the type of information to query for
 const (
 	EXTENDED_INFORMATION = 0
-	BASIC_INFORMATION = 1
+	BASIC_INFORMATION    = 1
 )
 
 // Constants describing the type of extended information to query for
 const (
-	UPTIME = 0
+	UPTIME      = 0
 	PLAYERSTATS = 1
-	TEAMSCORE = 2
+	TEAMSCORE   = 2
 )
 
 // GetTeamsScores queries a Sauerbraten server at addr on port for the teams' names and scores and returns the parsed response and/or an error in case something went wrong or the server is not running a team mode. Parsed response means that the int value sent as game mode is translated into the human readable name, e.g. '12' -> "insta ctf".
@@ -89,7 +89,6 @@ func GetTeamsScoresRaw(addr string, port int) (TeamsScoresRaw, error) {
 
 	return teamsScoresRaw, nil
 }
-
 
 // GetBasicInfo queries a Sauerbraten server at addr on port and returns the parsed response or an error in case something went wrong. Parsed response means that the int values sent as game mode and master mode are translated into the human readable name, e.g. '12' -> "insta ctf".
 func GetBasicInfo(addr string, port int) (BasicInfo, error) {
@@ -213,7 +212,7 @@ func GetPlayerInfoRaw(addr string, port int, clientNum int) (PlayerInfoRaw, erro
 
 	// throw away 7 first ints (EXTENDED_INFORMATION, PLAYERSTATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server PLAYERSTATS_RESP_STATS byte)
 	response = response[7:]
-	
+
 	positionInResponse = 0
 
 	playerInfoRaw.ClientNum = dumpInt(response)
@@ -231,7 +230,7 @@ func GetPlayerInfoRaw(addr string, port int, clientNum int) (PlayerInfoRaw, erro
 	playerInfoRaw.Privilege = dumpInt(response)
 	playerInfoRaw.State = dumpInt(response)
 	// IP from next 4 bytes
-	ip := response[positionInResponse:positionInResponse+4]
+	ip := response[positionInResponse : positionInResponse+4]
 	playerInfoRaw.IP = net.IPv4(ip[0], ip[1], ip[2], ip[3])
 
 	return playerInfoRaw, nil
@@ -258,7 +257,7 @@ func parsePlayerInfo(response []byte) PlayerInfo {
 	playerInfo.Privilege = getPrivilegeName(dumpInt(response))
 	playerInfo.State = getStateName(dumpInt(response))
 	// IP from next 4 bytes
-	ipBytes := response[positionInResponse:positionInResponse+4]
+	ipBytes := response[positionInResponse : positionInResponse+4]
 	playerInfo.IP = net.IPv4(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3])
 
 	return playerInfo

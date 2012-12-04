@@ -1,9 +1,9 @@
 package extinfo
 
 import (
-	"net"
 	"bufio"
 	"bytes"
+	"net"
 )
 
 // builds a request
@@ -36,7 +36,7 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 	}
 
 	// connect to server at port+1 (port is the port you connect to in game, sauerbraten listens on the one higher port for BasicInfo queries
-	conn, err := net.DialUDP("udp", nil, &net.UDPAddr{ipaddr.IP, port+1})
+	conn, err := net.DialUDP("udp", nil, &net.UDPAddr{ipaddr.IP, port + 1})
 	if err != nil {
 		return []byte{}, err
 	}
@@ -70,14 +70,19 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 			// for each client, receive a packet and append it to the response
 			playerInfos := make([]byte, 0)
 			for _ = range playerCns {
+				// read from connection
 				response = make([]byte, 64)
 				_, err = bufconn.Read(response)
+
+				// append to slice
 				playerInfos = append(playerInfos, response...)
+
 				// on error, return what we already have
 				if err != nil {
 					return playerInfos, err
 				}
 			}
+
 			return playerInfos, nil
 		}
 
@@ -87,7 +92,9 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 		if err != nil {
 			return []byte{}, err
 		}
+
 		return playerInfoResponse, nil
 	}
+
 	return response, nil
 }
