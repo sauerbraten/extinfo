@@ -91,12 +91,10 @@ func GetTeamsScoresRaw(addr string, port int) (TeamsScoresRaw, error) {
 }
 
 // GetBasicInfo queries a Sauerbraten server at addr on port and returns the parsed response or an error in case something went wrong. Parsed response means that the int values sent as game mode and master mode are translated into the human readable name, e.g. '12' -> "insta ctf".
-func GetBasicInfo(addr string, port int) (BasicInfo, error) {
-	basicInfo := BasicInfo{}
-
+func GetBasicInfo(addr string, port int) (info BasicInfo, err error) {
 	response, err := queryServer(addr, port, buildRequest(basicInfo, 0, 0))
 	if err != nil {
-		return basicInfo, err
+		return info, err
 	}
 
 	positionInResponse = 0
@@ -104,19 +102,19 @@ func GetBasicInfo(addr string, port int) (BasicInfo, error) {
 	// first int is basicInfo = 1
 	_ = dumpInt(response)
 
-	basicInfo.NumberOfClients = dumpInt(response)
+	info.NumberOfClients = dumpInt(response)
 	// next int is always 5, the number of additional attributes after the playercount and the strings for map and description
 	//numberOfAttributes := dumpInt(response)
 	_ = dumpInt(response)
-	basicInfo.ProtocolVersion = dumpInt(response)
-	basicInfo.GameMode = getGameModeName(dumpInt(response))
-	basicInfo.SecsLeft = dumpInt(response)
-	basicInfo.MaxNumberOfClients = dumpInt(response)
-	basicInfo.MasterMode = getMasterModeName(dumpInt(response))
-	basicInfo.Map = dumpString(response)
-	basicInfo.Description = dumpString(response)
+	info.ProtocolVersion = dumpInt(response)
+	info.GameMode = getGameModeName(dumpInt(response))
+	info.SecsLeft = dumpInt(response)
+	info.MaxNumberOfClients = dumpInt(response)
+	info.MasterMode = getMasterModeName(dumpInt(response))
+	info.Map = dumpString(response)
+	info.Description = dumpString(response)
 
-	return basicInfo, nil
+	return
 }
 
 // GetBasicInfoRaw queries a Sauerbraten server at addr on port and returns the raw response or an error in case something went wrong. Raw response means that the int values sent as game mode and master mode are NOT translated into the human readable name.
