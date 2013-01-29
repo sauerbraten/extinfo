@@ -16,7 +16,7 @@ Import the package:
 
 ## Documentation
 
-Detailed Documentation [here](http://go.pkgdoc.org/github.com/sauerbraten/extinfo).
+Detailed Documentation [here](http://godoc.org/github.com/sauerbraten/extinfo).
 
 ## Example
 
