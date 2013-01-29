@@ -21,7 +21,7 @@ func buildRequest(informationType int, extendedInfoType int, clientNum int) []by
 	}
 
 	// basic info request
-	if informationType == 1 {
+	if informationType == basicInfo {
 		request = append(request, byte(informationType))
 	}
 
