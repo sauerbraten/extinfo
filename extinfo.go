@@ -76,7 +76,7 @@ func (s *Server) GetTeamsScoresRaw() (TeamsScoresRaw, error) {
 
 	if !isTeamMode {
 		// no team scores following
-		return teamsScoresRaw, errors.New("server is not running a team mode")
+		return teamsScoresRaw, errors.New("extinfo: server is not running a team mode\n")
 	}
 
 	name := ""
@@ -192,8 +192,8 @@ func (s *Server) GetPlayerInfo(clientNum int) (PlayerInfo, error) {
 	}
 
 	if response[5] != 0x00 {
-		// there was an error
-		return playerInfo, errors.New("invalid cn")
+		// server says the cn was invalid
+		return playerInfo, errors.New("extinfo: invalid cn\n")
 	}
 
 	// throw away 7 first ints (extendedInfo, playerStatsInfo, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server playerStatsInfo_RESP_STATS byte)
@@ -214,8 +214,8 @@ func (s *Server) GetPlayerInfoRaw(clientNum int) (PlayerInfoRaw, error) {
 	}
 
 	if response[5] != 0x00 {
-		// there was an error
-		return playerInfoRaw, errors.New("invalid cn")
+		// server says the cn was invalid
+		return playerInfoRaw, errors.New("extinfo: invalid cn\n")
 	}
 
 	// throw away 7 first ints (extendedInfo, playerStatsInfo, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server playerStatsInfo_RESP_STATS byte)
