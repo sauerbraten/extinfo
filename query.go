@@ -37,6 +37,7 @@ func queryServer(addr string, port int, request []byte) ([]byte, error) {
 
 	// connect to server at port+1 (port is the port you connect to in game, sauerbraten listens on the one higher port for BasicInfo queries
 	conn, err := net.DialUDP("udp", nil, &net.UDPAddr{ipaddr.IP, port + 1})
+	defer conn.Close()
 	if err != nil {
 		return []byte{}, err
 	}
