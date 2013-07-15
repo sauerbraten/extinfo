@@ -21,7 +21,7 @@ func getInt(buf []byte) (int, int) {
 		// 2 next bytes = cd (as in ABCDEFGH...)
 		cd := int(buf[1]) + int(buf[2])<<8
 		// return the decoded int and the amount of bytes used
-		/*		
+		/*
 			if int(cd) > int(0x7F00) {
 				return int(cd) - int(1<<16), 3
 			}
@@ -54,8 +54,9 @@ func getInt(buf []byte) (int, int) {
 
 // converts the next bytes up to the first \0 byte into a string
 func getString(buf []byte) (string, int) {
-	str := string(buf[:bytes.Index(buf, []byte{0})+1])
-	return str, len(str)
+	end := bytes.Index(buf, []byte{0}) + 1
+	str := string(decodeCubecode(buf[:end]))
+	return str, end
 }
 
 // returns a decoded int and sets the position to the next attribute's first byte
