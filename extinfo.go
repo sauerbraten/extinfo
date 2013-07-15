@@ -6,11 +6,6 @@ import (
 	"net"
 )
 
-// the current position in a response ([]byte)
-// needed, since values are encoded in variable amount of bytes
-// global to not have to pass around an int on every dump
-var positionInResponse int
-
 // Constants describing the type of information to query for
 const (
 	extendedInfo = 0

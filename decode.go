@@ -5,6 +5,11 @@ import (
 	"log"
 )
 
+// the current position in a response ([]byte)
+// needed, since values are encoded in variable amount of bytes
+// global to not have to pass around an int on every dump
+var positionInResponse int
+
 // decodes the bytes read from the connection into ints
 // returns the decoded byte slice as int and the amount of bytes used up of the slice
 func getInt(buf []byte) (int, int) {
