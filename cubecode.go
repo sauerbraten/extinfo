@@ -38,7 +38,7 @@ func decodeCubecode(src []byte) (res []byte) {
 		buf []byte
 	)
 
-	for b := range src {
+	for _, b := range src {
 		// convert to unicode rune
 		uni = cube2uni(int(b))
 		buf = make([]byte, 3)
