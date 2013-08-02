@@ -4,6 +4,8 @@ import (
 	"unicode/utf8"
 )
 
+// cubecode conversion table
+// cubecode is a small subset of unicode, mainly offering kyrillic and greek letters
 var cube2unichars [256]rune = [256]rune{
 	0, 192, 193, 194, 195, 196, 197, 198, 199, 9, 10, 11, 12, 13, 200, 201,
 	202, 203, 204, 205, 206, 207, 209, 210, 211, 212, 213, 214, 216, 217, 218, 219,
@@ -23,24 +25,26 @@ var cube2unichars [256]rune = [256]rune{
 	0x43F, 0x442, 0x444, 0x446, 0x447, 0x448, 0x449, 0x44A, 0x44B, 0x44C, 0x44D, 0x44E, 0x44F, 0x454, 0x490, 0x491,
 }
 
+// converts cubecode to unicode
 func cube2uni(c int) rune {
 	return cube2unichars[c]
 }
 
+//
 func decodeCubecode(src []byte) (res []byte) {
-	srcpos := 0
 	var (
 		n   int
 		uni rune
 		buf []byte
 	)
-	for srcpos < len(src) {
-		b := src[srcpos]
-		srcpos++
 
+	for b := range src {
+		// convert to unicode rune
 		uni = cube2uni(int(b))
 		buf = make([]byte, 3)
 		n = utf8.EncodeRune(buf, uni)
+
+		// append used bytes to result
 		res = append(res, buf[:n]...)
 	}
 
