@@ -21,12 +21,13 @@ const (
 
 // A server to query extinfo from.
 type Server struct {
-	addr string
-	port int
+	addr *net.UDPAddr
 }
 
-func NewServer(addr string, port int) *Server {
-	return &Server{addr, port}
+func NewServer(addr *net.UDPAddr) (s *Server) {
+	s = &Server{addr}
+	s.addr.Port++ // extinfo port is at game port + 1
+	return
 }
 
 // GetTeamsScores queries a Sauerbraten server at addr on port for the teams' names and scores and returns the parsed response and/or an error in case something went wrong or the server is not running a team mode. Parsed response means that the int value sent as game mode is translated into the human readable name, e.g. '12' -> "insta ctf".
@@ -41,7 +42,7 @@ func (s *Server) GetTeamsScoresRaw() (TeamsScoresRaw, error) {
 	teamsScoresRaw := TeamsScoresRaw{}
 
 	request := buildRequest(extendedInfo, teamScoreInfo, 0)
-	response, err := queryServer(s.addr, s.port, request)
+	response, err := s.queryServer(request)
 	if err != nil {
 		return teamsScoresRaw, err
 	}
@@ -97,7 +98,7 @@ func (s *Server) GetTeamsScoresRaw() (TeamsScoresRaw, error) {
 
 // GetBasicInfo queries a Sauerbraten server at addr on port and returns the parsed response or an error in case something went wrong. Parsed response means that the int values sent as game mode and master mode are translated into the human readable name, e.g. '12' -> "insta ctf".
 func (s *Server) GetBasicInfo() (info BasicInfo, err error) {
-	response, err := queryServer(s.addr, s.port, buildRequest(basicInfo, 0, 0))
+	response, err := s.queryServer(buildRequest(basicInfo, 0, 0))
 	if err != nil {
 		return info, err
 	}
@@ -126,7 +127,7 @@ func (s *Server) GetBasicInfo() (info BasicInfo, err error) {
 func (s *Server) GetBasicInfoRaw() (BasicInfoRaw, error) {
 	basicInfoRaw := BasicInfoRaw{}
 
-	response, err := queryServer(s.addr, s.port, buildRequest(basicInfo, 0, 0))
+	response, err := s.queryServer(buildRequest(basicInfo, 0, 0))
 	if err != nil {
 		return basicInfoRaw, err
 	}
@@ -152,7 +153,7 @@ func (s *Server) GetBasicInfoRaw() (BasicInfoRaw, error) {
 
 // GetUptime returns the uptime of the server in seconds.
 func (s *Server) GetUptime() (int, error) {
-	response, err := queryServer(s.addr, s.port, buildRequest(extendedInfo, uptimeInfo, 0))
+	response, err := s.queryServer(buildRequest(extendedInfo, uptimeInfo, 0))
 	if err != nil {
 		return -1, err
 	}
@@ -181,7 +182,7 @@ func (s *Server) GetUptime() (int, error) {
 func (s *Server) GetPlayerInfo(clientNum int) (PlayerInfo, error) {
 	playerInfo := PlayerInfo{}
 
-	response, err := queryServer(s.addr, s.port, buildRequest(extendedInfo, playerStatsInfo, clientNum))
+	response, err := s.queryServer(buildRequest(extendedInfo, playerStatsInfo, clientNum))
 	if err != nil {
 		return playerInfo, err
 	}
@@ -203,7 +204,7 @@ func (s *Server) GetPlayerInfo(clientNum int) (PlayerInfo, error) {
 func (s *Server) GetPlayerInfoRaw(clientNum int) (PlayerInfoRaw, error) {
 	playerInfoRaw := PlayerInfoRaw{}
 
-	response, err := queryServer(s.addr, s.port, buildRequest(extendedInfo, playerStatsInfo, clientNum))
+	response, err := s.queryServer(buildRequest(extendedInfo, playerStatsInfo, clientNum))
 	if err != nil {
 		return playerInfoRaw, err
 	}
@@ -270,7 +271,7 @@ func parsePlayerInfo(response []byte) PlayerInfo {
 func (s *Server) GetAllPlayerInfo() ([]PlayerInfo, error) {
 	allPlayerInfo := []PlayerInfo{}
 
-	response, err := queryServer(s.addr, s.port, buildRequest(extendedInfo, playerStatsInfo, -1))
+	response, err := s.queryServer(buildRequest(extendedInfo, playerStatsInfo, -1))
 	if err != nil {
 		return allPlayerInfo, err
 	}

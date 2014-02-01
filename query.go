@@ -31,14 +31,9 @@ func buildRequest(informationType int, extendedInfoType int, clientNum int) []by
 }
 
 // queries the given server and returns the raw response as []byte and an error in case something went wrong. clientNum is optional, put 0 if not needed.
-func queryServer(addr string, port int, request []byte) ([]byte, error) {
-	ipaddr, err := net.ResolveIPAddr("ip", addr)
-	if err != nil {
-		return []byte{}, err
-	}
-
+func (s *Server) queryServer(request []byte) ([]byte, error) {
 	// connect to server at port+1 (port is the port you connect to in game, sauerbraten listens on the one higher port for BasicInfo queries
-	conn, err := net.DialUDP("udp", nil, &net.UDPAddr{ipaddr.IP, port + 1, ""})
+	conn, err := net.DialUDP("udp", nil, s.addr)
 	defer conn.Close()
 	if err != nil {
 		return []byte{}, err

@@ -1,6 +1,6 @@
 # extinfo
 
-A  Go package to query information ('extinfo') from a Sauerbraten game server. 
+A  Go package to query information ('extinfo') from a Sauerbraten game server.
 
 ## Usage
 
@@ -23,20 +23,27 @@ Detailed Documentation [here](http://godoc.org/github.com/sauerbraten/extinfo).
 Here is code to get you the state of the PSL1 server:
 
 	package main
-	
+
 	import (
 		"fmt"
 		"github.com/sauerbraten/extinfo"
+		"net"
 	)
-	
+
 	func main() {
-		psl1 := extinfo.NewServer("sauerleague.org", 10000)
+		addr, err := net.ResolveUDPAddr("udp", "sauerleague.org:10000")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		psl1 := extinfo.NewServer(addr)
 		basicInfo, err := psl1.GetBasicInfo()
 		if err != nil {
 			fmt.Print("Error getting basic information: ", err)
 			return
 		}
-	
+
 		fmt.Print("Basic Server Information:\n")
 		fmt.Printf("Description:                %v\n", basicInfo.Description)
 		fmt.Printf("Master Mode:                %v\n", basicInfo.MasterMode)
@@ -63,7 +70,7 @@ The output should be something like this:
 `GetPlayerInfo()` and `GetPlayerInfoRaw()` work pretty much the same; here is an example to get the player information of the player with the cn 4 on PSL1:
 
 	...
-	
+
 	func main() {
 		psl1 := extinfo.NewServer("sauerleague.org", 10000)
 		playerInfo, err := psl1.GetPlayerInfo(14)
@@ -97,7 +104,7 @@ Output would look like this:
 There is also `GetTeamsScores()` which returns all teams' scores (a TeamsScores containing a TeamScore (team score) for every team in the current game). Example code:
 
 	...
-	
+
 	func main() {
 		psl1 := extinfo.NewServer("sauerleague.org", 10000)
 		scores, err := psl1.GetTeamsScores()
