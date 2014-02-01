@@ -25,7 +25,9 @@ type Server struct {
 }
 
 func NewServer(addr *net.UDPAddr) (s *Server) {
-	s = &Server{addr}
+	// copy the address to not touch the original port
+	addrCopy := *addr
+	s = &Server{&addrCopy}
 	s.addr.Port++ // extinfo port is at game port + 1
 	return
 }
