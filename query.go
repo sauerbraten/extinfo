@@ -9,22 +9,22 @@ import (
 )
 
 // builds a request
-func buildRequest(informationType int, extendedInfoType int, clientNum int) []byte {
+func buildRequest(infoType int, extendedInfoType int, clientNum int) []byte {
 	request := make([]byte, 0)
 
 	// extended info request
-	if informationType == extendedInfo {
+	if infoType == EXTENDED_INFO {
 		// player stats has to include the clientNum
-		if extendedInfoType == playerStatsInfo {
-			request = append(request, byte(informationType), byte(extendedInfoType), byte(clientNum))
+		if extendedInfoType == EXTENDED_INFO_PLAYER_STATS {
+			request = append(request, byte(infoType), byte(extendedInfoType), byte(clientNum))
 		} else {
-			request = append(request, byte(informationType), byte(extendedInfoType))
+			request = append(request, byte(infoType), byte(extendedInfoType))
 		}
 	}
 
 	// basic info request
-	if informationType == basicInfo {
-		request = append(request, byte(informationType))
+	if infoType == BASIC_INFO {
+		request = append(request, byte(infoType))
 	}
 
 	return request
@@ -62,12 +62,12 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 			// trim null bytes
 			response = bytes.TrimRight(response, "\x00")
 
-			// get player cns out of the reponse: 7 first bytes are extendedInfo, playerStatsInfo, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server playerStatsInfo_RESP_STATS byte
-			playerCns := response[7:]
+			// get player cns out of the reponse: 7 first bytes are EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server EXTENDED_INFO_PLAYER_STATS_RESP_IDS byte
+			playerCNs := response[7:]
 
 			// for each client, receive a packet and append it to the response
 			playerInfos := make([]byte, 0)
-			for _ = range playerCns {
+			for _ = range playerCNs {
 				// read from connection
 				response = make([]byte, 64)
 				_, err = bufconn.Read(response)

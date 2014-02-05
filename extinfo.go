@@ -8,15 +8,15 @@ import (
 
 // Constants describing the type of information to query for
 const (
-	extendedInfo = 0
-	basicInfo    = 1
+	EXTENDED_INFO = 0
+	BASIC_INFO    = 1
 )
 
 // Constants describing the type of extended information to query for
 const (
-	uptimeInfo      = 0
-	playerStatsInfo = 1
-	teamScoreInfo   = 2
+	EXTENDED_INFO_UPTIME       = 0
+	EXTENDED_INFO_PLAYER_STATS = 1
+	EXTENDED_INFO_TEAMS_SCORES = 2
 )
 
 // A server to query extinfo from.
@@ -43,7 +43,7 @@ func (s *Server) GetTeamsScores() (TeamsScores, error) {
 func (s *Server) GetTeamsScoresRaw() (TeamsScoresRaw, error) {
 	teamsScoresRaw := TeamsScoresRaw{}
 
-	request := buildRequest(extendedInfo, teamScoreInfo, 0)
+	request := buildRequest(EXTENDED_INFO, EXTENDED_INFO_TEAMS_SCORES, 0)
 	response, err := s.queryServer(request)
 	if err != nil {
 		return teamsScoresRaw, err
@@ -51,10 +51,10 @@ func (s *Server) GetTeamsScoresRaw() (TeamsScoresRaw, error) {
 
 	positionInResponse = 0
 
-	// first int is extendedInfo = 0
+	// first int is EXTENDED_INFO = 0
 	_ = dumpInt(response)
 
-	// next int is teamScoreInfo = 2
+	// next int is EXTENDED_INFO_TEAMS_SCORES = 2
 	_ = dumpInt(response)
 
 	// next int is EXT_ACK = -1
@@ -100,14 +100,14 @@ func (s *Server) GetTeamsScoresRaw() (TeamsScoresRaw, error) {
 
 // GetBasicInfo queries a Sauerbraten server at addr on port and returns the parsed response or an error in case something went wrong. Parsed response means that the int values sent as game mode and master mode are translated into the human readable name, e.g. '12' -> "insta ctf".
 func (s *Server) GetBasicInfo() (info BasicInfo, err error) {
-	response, err := s.queryServer(buildRequest(basicInfo, 0, 0))
+	response, err := s.queryServer(buildRequest(BASIC_INFO, 0, 0))
 	if err != nil {
 		return info, err
 	}
 
 	positionInResponse = 0
 
-	// first int is basicInfo = 1
+	// first int is BASIC_INFO = 1
 	_ = dumpInt(response)
 
 	info.NumberOfClients = dumpInt(response)
@@ -127,45 +127,45 @@ func (s *Server) GetBasicInfo() (info BasicInfo, err error) {
 
 // GetBasicInfoRaw queries a Sauerbraten server at addr on port and returns the raw response or an error in case something went wrong. Raw response means that the int values sent as game mode and master mode are NOT translated into the human readable name.
 func (s *Server) GetBasicInfoRaw() (BasicInfoRaw, error) {
-	basicInfoRaw := BasicInfoRaw{}
+	BASIC_INFORaw := BasicInfoRaw{}
 
-	response, err := s.queryServer(buildRequest(basicInfo, 0, 0))
+	response, err := s.queryServer(buildRequest(BASIC_INFO, 0, 0))
 	if err != nil {
-		return basicInfoRaw, err
+		return BASIC_INFORaw, err
 	}
 
 	positionInResponse = 0
 
-	// first int is basicInfo = 1
+	// first int is BASIC_INFO = 1
 	_ = dumpInt(response)
-	basicInfoRaw.NumberOfClients = dumpInt(response)
+	BASIC_INFORaw.NumberOfClients = dumpInt(response)
 	// next int is always 5, the number of additional attributes after the playercount and the strings for map and description
 	//numberOfAttributes := dumpInt(response)
 	_ = dumpInt(response)
-	basicInfoRaw.ProtocolVersion = dumpInt(response)
-	basicInfoRaw.GameMode = dumpInt(response)
-	basicInfoRaw.SecsLeft = dumpInt(response)
-	basicInfoRaw.MaxNumberOfClients = dumpInt(response)
-	basicInfoRaw.MasterMode = dumpInt(response)
-	basicInfoRaw.Map = dumpString(response)
-	basicInfoRaw.Description = dumpString(response)
+	BASIC_INFORaw.ProtocolVersion = dumpInt(response)
+	BASIC_INFORaw.GameMode = dumpInt(response)
+	BASIC_INFORaw.SecsLeft = dumpInt(response)
+	BASIC_INFORaw.MaxNumberOfClients = dumpInt(response)
+	BASIC_INFORaw.MasterMode = dumpInt(response)
+	BASIC_INFORaw.Map = dumpString(response)
+	BASIC_INFORaw.Description = dumpString(response)
 
-	return basicInfoRaw, nil
+	return BASIC_INFORaw, nil
 }
 
 // GetUptime returns the uptime of the server in seconds.
 func (s *Server) GetUptime() (int, error) {
-	response, err := s.queryServer(buildRequest(extendedInfo, uptimeInfo, 0))
+	response, err := s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_UPTIME, 0))
 	if err != nil {
 		return -1, err
 	}
 
 	positionInResponse = 0
 
-	// first int is extendedInfo
+	// first int is EXTENDED_INFO
 	_ = dumpInt(response)
 
-	// next int is EXT_uptimeInfo = 0
+	// next int is EXT_EXTENDED_INFO_UPTIME = 0
 	_ = dumpInt(response)
 
 	// next int is EXT_ACK = -1
@@ -184,7 +184,7 @@ func (s *Server) GetUptime() (int, error) {
 func (s *Server) GetPlayerInfo(clientNum int) (PlayerInfo, error) {
 	playerInfo := PlayerInfo{}
 
-	response, err := s.queryServer(buildRequest(extendedInfo, playerStatsInfo, clientNum))
+	response, err := s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, clientNum))
 	if err != nil {
 		return playerInfo, err
 	}
@@ -194,7 +194,7 @@ func (s *Server) GetPlayerInfo(clientNum int) (PlayerInfo, error) {
 		return playerInfo, errors.New("extinfo: invalid cn\n")
 	}
 
-	// throw away 7 first ints (extendedInfo, playerStatsInfo, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server playerStatsInfo_RESP_STATS byte)
+	// throw away 7 first ints (EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server EXTENDED_INFO_PLAYER_STATS_RESP_STATS byte)
 	response = response[7:]
 
 	playerInfo = parsePlayerInfo(response)
@@ -206,7 +206,7 @@ func (s *Server) GetPlayerInfo(clientNum int) (PlayerInfo, error) {
 func (s *Server) GetPlayerInfoRaw(clientNum int) (PlayerInfoRaw, error) {
 	playerInfoRaw := PlayerInfoRaw{}
 
-	response, err := s.queryServer(buildRequest(extendedInfo, playerStatsInfo, clientNum))
+	response, err := s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, clientNum))
 	if err != nil {
 		return playerInfoRaw, err
 	}
@@ -216,7 +216,7 @@ func (s *Server) GetPlayerInfoRaw(clientNum int) (PlayerInfoRaw, error) {
 		return playerInfoRaw, errors.New("extinfo: invalid cn\n")
 	}
 
-	// throw away 7 first ints (extendedInfo, playerStatsInfo, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server playerStatsInfo_RESP_STATS byte)
+	// throw away 7 first ints (EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server EXTENDED_INFO_PLAYER_STATS_RESP_STATS byte)
 	response = response[7:]
 
 	positionInResponse = 0
@@ -270,20 +270,19 @@ func parsePlayerInfo(response []byte) PlayerInfo {
 }
 
 // GetAllPlayerInfo returns the Information of all Players (including spectators) as a []PlayerInfo
-func (s *Server) GetAllPlayerInfo() ([]PlayerInfo, error) {
-	allPlayerInfo := []PlayerInfo{}
+func (s *Server) GetAllPlayerInfo() (map[int]PlayerInfo, error) {
+	allPlayerInfo := map[int]PlayerInfo{}
 
-	response, err := s.queryServer(buildRequest(extendedInfo, playerStatsInfo, -1))
+	response, err := s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, -1))
 	if err != nil {
 		return allPlayerInfo, err
 	}
 
 	// response is multiple 64-byte responses, one for each player
-	playerCount := len(response) / 64
-
 	// parse each 64 byte packet (without the first 7 bytes) on its own and append to allPlayerInfo
-	for i := 0; i < playerCount; i++ {
-		allPlayerInfo = append(allPlayerInfo, parsePlayerInfo(response[i*64+7:(i*64)+64]))
+	for i := 0; i < len(response); i += 64 {
+		playerInfo := parsePlayerInfo(response[i+7 : i+64])
+		allPlayerInfo[playerInfo.ClientNum] = playerInfo
 	}
 
 	return allPlayerInfo, nil
