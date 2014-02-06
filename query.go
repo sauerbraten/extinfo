@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"bytes"
 	"net"
+	"time"
 )
 
 // builds a request
@@ -48,8 +49,9 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	// receive response from server
+	// receive response from server with 5 second timeout
 	response := make([]byte, 64)
+	conn.SetReadDeadline(time.Now().Add(s.timeOut))
 	_, err = bufconn.Read(response)
 	if err != nil {
 		return []byte{}, err
@@ -70,6 +72,7 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 			for _ = range playerCNs {
 				// read from connection
 				response = make([]byte, 64)
+				conn.SetReadDeadline(time.Now().Add(s.timeOut))
 				_, err = bufconn.Read(response)
 
 				// append to slice
@@ -86,6 +89,7 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 
 		// else, only one cn was asked for --> one package following
 		playerInfoResponse := make([]byte, 64)
+		conn.SetReadDeadline(time.Now().Add(s.timeOut))
 		_, err = bufconn.Read(playerInfoResponse)
 		if err != nil {
 			return []byte{}, err

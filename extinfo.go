@@ -4,6 +4,7 @@ package extinfo
 import (
 	"errors"
 	"net"
+	"time"
 )
 
 // Constants describing the type of information to query for
@@ -21,13 +22,17 @@ const (
 
 // A server to query extinfo from.
 type Server struct {
-	addr *net.UDPAddr
+	addr    *net.UDPAddr
+	timeOut time.Duration
 }
 
-func NewServer(addr *net.UDPAddr) (s *Server) {
+func NewServer(addr *net.UDPAddr, timeOut time.Duration) (s *Server) {
 	// copy the address to not touch the original port
 	addrCopy := *addr
-	s = &Server{&addrCopy}
+	s = &Server{
+		addr:    &addrCopy,
+		timeOut: timeOut,
+	}
 	s.addr.Port++ // extinfo port is at game port + 1
 	return
 }
@@ -100,7 +105,8 @@ func (s *Server) GetTeamsScoresRaw() (TeamsScoresRaw, error) {
 
 // GetBasicInfo queries a Sauerbraten server at addr on port and returns the parsed response or an error in case something went wrong. Parsed response means that the int values sent as game mode and master mode are translated into the human readable name, e.g. '12' -> "insta ctf".
 func (s *Server) GetBasicInfo() (info BasicInfo, err error) {
-	response, err := s.queryServer(buildRequest(BASIC_INFO, 0, 0))
+	var response []byte
+	response, err = s.queryServer(buildRequest(BASIC_INFO, 0, 0))
 	if err != nil {
 		return info, err
 	}
