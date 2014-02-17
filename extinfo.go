@@ -29,7 +29,7 @@ const (
 
 // A server to query extinfo from.
 type Server struct {
-	addr    *net.UDPAddr
+	Addr    *net.UDPAddr
 	timeOut time.Duration
 }
 
