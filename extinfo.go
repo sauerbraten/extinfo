@@ -7,17 +7,23 @@ import (
 	"time"
 )
 
-// Constants describing the type of information to query for
 const (
+	// Constants describing the type of information to query for
 	EXTENDED_INFO = 0
 	BASIC_INFO    = 1
-)
 
-// Constants describing the type of extended information to query for
-const (
+	EXTENDED_INFO_ACK      = -1
+	EXTENDED_INFO_VERSION  = 105
+	EXTENDED_INFO_ERROR    = 1
+	EXTENDED_INFO_NO_ERROR = 0
+
+	// Constants describing the type of extended information to query for
 	EXTENDED_INFO_UPTIME       = 0
 	EXTENDED_INFO_PLAYER_STATS = 1
 	EXTENDED_INFO_TEAMS_SCORES = 2
+
+	EXTENDED_INFO_PLAYER_STATS_RESPONSE_IDS   = -10
+	EXTENDED_INFO_PLAYER_STATS_RESPONSE_STATS = -11
 )
 
 // A server to query extinfo from.

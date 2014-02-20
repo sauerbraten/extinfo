@@ -11,7 +11,7 @@ import (
 
 // builds a request
 func buildRequest(infoType int, extendedInfoType int, clientNum int) []byte {
-	request := make([]byte, 0)
+	request := []byte{}
 
 	// extended info request
 	if infoType == EXTENDED_INFO {

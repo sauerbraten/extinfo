@@ -3,6 +3,7 @@ package extinfo
 import (
 	"net"
 	"testing"
+	"time"
 )
 
 var testAddress *net.UDPAddr
@@ -16,7 +17,7 @@ func init() {
 }
 
 func TestGetBasicInfo(t *testing.T) {
-	psl1 := NewServer(testAddress)
+	psl1 := NewServer(testAddress, 5*time.Second)
 	_, err := psl1.GetBasicInfo()
 	if err != nil {
 		t.Fail()
@@ -24,7 +25,7 @@ func TestGetBasicInfo(t *testing.T) {
 }
 
 func TestGetUptime(t *testing.T) {
-	psl1 := NewServer(testAddress)
+	psl1 := NewServer(testAddress, 5*time.Second)
 	_, err := psl1.GetUptime()
 	if err != nil {
 		t.Fail()
@@ -32,7 +33,7 @@ func TestGetUptime(t *testing.T) {
 }
 
 func TestGetPlayerInfo(t *testing.T) {
-	psl1 := NewServer(testAddress)
+	psl1 := NewServer(testAddress, 5*time.Second)
 	_, err := psl1.GetPlayerInfo(2)
 	if err != nil {
 		t.Fail()
@@ -40,7 +41,7 @@ func TestGetPlayerInfo(t *testing.T) {
 }
 
 func TestGetAllPlayerInfo(t *testing.T) {
-	psl1 := NewServer(testAddress)
+	psl1 := NewServer(testAddress, 5*time.Second)
 	_, err := psl1.GetAllPlayerInfo()
 	if err != nil {
 		t.Fail()
@@ -48,7 +49,7 @@ func TestGetAllPlayerInfo(t *testing.T) {
 }
 
 func TestGetTeamsScores(t *testing.T) {
-	psl1 := NewServer(testAddress)
+	psl1 := NewServer(testAddress, 5*time.Second)
 	_, err := psl1.GetTeamsScores()
 	if err != nil {
 		t.Fail()
