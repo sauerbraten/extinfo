@@ -26,11 +26,6 @@ func getInt(buf []byte) (int, int) {
 		// 2 next bytes = cd (as in ABCDEFGH...)
 		cd := int(buf[1]) + int(buf[2])<<8
 		// return the decoded int and the amount of bytes used
-		/*
-			if int(cd) > int(0x7F00) {
-				return int(cd) - int(1<<16), 3
-			}
-		*/
 		return cd, 3
 	}
 
@@ -42,11 +37,6 @@ func getInt(buf []byte) (int, int) {
 		// 4 next bytes = cdef (as in ABCDEFGH...)
 		cdef := int(buf[1]) + int(buf[2])<<8 + int(buf[3])<<16 + int(buf[4])<<24
 		// return the decoded int and the amount of bytes used
-		/*
-			if int(cdef) > int(0x7F000000) {
-				return int(cdef) - int(1<<24), 5
-			}
-		*/
 		return cdef, 5
 	}
 

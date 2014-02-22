@@ -8,6 +8,8 @@ type BasicInfoRaw struct {
 	SecsLeft           int    // the time left until intermission in seconds
 	MaxNumberOfClients int    // the maximum number of clients the server allows
 	MasterMode         int    // the current master mode of the server
+	Paused             bool   // wether the game is paused or not
+	GameSpeed          int    // the gamespeed
 	Map                string // current map
 	Description        string // server description
 }
@@ -33,14 +35,24 @@ func (s *Server) GetBasicInfoRaw() (BasicInfoRaw, error) {
 	// first int is BASIC_INFO = 1
 	_ = dumpInt(response)
 	basicInfoRaw.NumberOfClients = dumpInt(response)
-	// next int is always 5, the number of additional attributes after the playercount and the strings for map and description
-	//numberOfAttributes := dumpInt(response)
-	_ = dumpInt(response)
+	// next int is always 5 or 7, the number of additional attributes after the playercount and before the strings for map and description
+	sevenAttributes := false
+	if dumpInt(response) == 7 {
+		sevenAttributes = true
+	}
 	basicInfoRaw.ProtocolVersion = dumpInt(response)
 	basicInfoRaw.GameMode = dumpInt(response)
 	basicInfoRaw.SecsLeft = dumpInt(response)
 	basicInfoRaw.MaxNumberOfClients = dumpInt(response)
 	basicInfoRaw.MasterMode = dumpInt(response)
+	if sevenAttributes {
+		if dumpInt(response) == 1 {
+			basicInfoRaw.Paused = true
+		}
+		basicInfoRaw.GameSpeed == dumpInt(response)
+	} else {
+		basicInfoRaw.GameSpeed = 100
+	}
 	basicInfoRaw.Map = dumpString(response)
 	basicInfoRaw.Description = dumpString(response)
 

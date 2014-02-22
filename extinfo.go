@@ -39,6 +39,6 @@ func NewServer(addr *net.UDPAddr, timeOut time.Duration) (s *Server) {
 		addr:    &addrCopy,
 		timeOut: timeOut,
 	}
-	s.addr.Port++ // extinfo port is at game port + 1
+	s.addr.Port++ // info port is at game server port + 1
 	return
 }
