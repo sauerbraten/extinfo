@@ -30,19 +30,13 @@ func cube2uni(c int) rune {
 	return cube2unichars[c]
 }
 
-//
+// converts a []byte of cubecode text into the corresponding UTF-8 bytes
 func decodeCubecode(src []byte) (res []byte) {
-	var (
-		n   int
-		uni rune
-		buf []byte
-	)
-
 	for _, b := range src {
 		// convert to unicode rune
-		uni = cube2uni(int(b))
-		buf = make([]byte, 3)
-		n = utf8.EncodeRune(buf, uni)
+		uni := cube2uni(int(b))
+		buf := make([]byte, 3)
+		n := utf8.EncodeRune(buf, uni)
 
 		// append used bytes to result
 		res = append(res, buf[:n]...)

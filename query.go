@@ -7,13 +7,12 @@ import (
 	"bytes"
 	"net"
 	"time"
-        "fmt"
         "strconv"
 )
 
 // builds a request
 func buildRequest(infoType int, extendedInfoType int, clientNum int) []byte {
-	request := make([]byte, 0)
+	request := []byte{}
 
 	// extended info request
 	if infoType == EXTENDED_INFO {
@@ -109,7 +108,10 @@ func queryMasterList() (*bufio.Reader, error){
           return nil, err
      }
 
-     fmt.Fprintf(conn, "list\n")
+     _, err = conn.Write([]byte("list\n"))
+     if err != nil{
+         return nil, err
+     }
 
      reader := bufio.NewReader(conn)
      return reader, nil
