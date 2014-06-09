@@ -49,7 +49,7 @@ func (s *Server) GetBasicInfoRaw() (BasicInfoRaw, error) {
 		if dumpInt(response) == 1 {
 			basicInfoRaw.Paused = true
 		}
-		basicInfoRaw.GameSpeed = dumpInt(response)
+		basicInfoRaw.GameSpeed == dumpInt(response)
 	} else {
 		basicInfoRaw.GameSpeed = 100
 	}

@@ -26,7 +26,6 @@ const (
 	EXTENDED_INFO_PLAYER_STATS_RESPONSE_STATS = -11
 )
 
-
 // A server to query extinfo from.
 type Server struct {
 	addr    *net.UDPAddr

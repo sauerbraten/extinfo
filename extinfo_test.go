@@ -55,10 +55,3 @@ func TestGetTeamsScores(t *testing.T) {
 		t.Fail()
 	}
 }
-
-func testGetMasterServerList(t *testing.T) {
-    _, err := GetMasterServerList(5*time.Second)
-    if err != nil {
-        t.Fail()
-    }
-}

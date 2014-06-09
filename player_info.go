@@ -115,23 +115,3 @@ func parsePlayerInfoResponse(response []byte) PlayerInfoRaw {
 
 	return playerInfoRaw
 }
-
-
-// GetAllPlayerInfo returns the Information of all Players (including spectators) as a []PlayerInfo
-func (s *Server) GetAllPlayerInfoRaw() (map[int]PlayerInfoRaw, error) {
-	allPlayerInfo := map[int]PlayerInfoRaw{}
-
-	response, err := s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, -1))
-	if err != nil {
-		return allPlayerInfo, err
-	}
-
-	// response is multiple 64-byte responses, one for each player
-	// parse each 64 byte packet (without the first 7 bytes) on its own and append to allPlayerInfo
-	for i := 0; i < len(response); i += 64 {
-		playerInfo := parsePlayerInfoResponse(response[i+7 : i+64])
-		allPlayerInfo[playerInfo.ClientNum] = playerInfo
-	}
-
-	return allPlayerInfo, nil
-}

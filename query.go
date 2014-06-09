@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"net"
 	"time"
-        "strconv"
 )
 
 // builds a request
@@ -100,19 +99,4 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 	}
 
 	return response, nil
-}
-
-func queryMasterList() (*bufio.Reader, error){
-     conn, err := net.Dial("tcp", MASTER_SERVER_ADDRESS + ":" + strconv.Itoa(MASTER_SERVER_PORT))
-     if err != nil{
-          return nil, err
-     }
-
-     _, err = conn.Write([]byte("list\n"))
-     if err != nil{
-         return nil, err
-     }
-
-     reader := bufio.NewReader(conn)
-     return reader, nil
 }
