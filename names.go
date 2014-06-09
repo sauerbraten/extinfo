@@ -14,7 +14,7 @@ var weaponNames = []string{"chain saw", "shotgun", "chain gun", "rocket launcher
 
 // A slice containing the privilege names
 // Maps the privilege ints to privilege strings
-var privilegeNames = []string{"none", "master", "admin"}
+var privilegeNames = []string{"none", "master", "auth", "admin"}
 
 // A slice containing the state names
 // Maps the state ints to state strings
