@@ -34,7 +34,7 @@ func TestGetUptime(t *testing.T) {
 
 func TestGetPlayerInfo(t *testing.T) {
 	psl1 := NewServer(testAddress, 5*time.Second)
-	_, err := psl1.GetPlayerInfo(2)
+	_, err := psl1.GetPlayerInfo(0)
 	if err != nil {
 		t.Fail()
 	}

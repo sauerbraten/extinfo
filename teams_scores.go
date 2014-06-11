@@ -7,8 +7,8 @@ import (
 // TeamScore (team score) contains the name of the team and the score, i.e. flags scored in flag modes / points gained for holding bases in capture modes / frags achieved in DM modes / skulls collected
 type TeamScore struct {
 	Name  string // name of the team, e.g. "good"
-	Score int    // amount of points (e.g. flags in ctf modes, frags in deathmatch modes, base points in capture, and so on)
-	Bases []int  // the numbers/IDs of the bases the team possesses
+	Score int    // amount of points (flags in ctf modes, frags in deathmatch modes, points in capture, skulls in collect)
+	Bases []int  // the numbers/IDs of the bases the team possesses (only used in capture modes)
 }
 
 // TeamsScoresRaw (teams's scores) contains the game mode as raw int, the seconds left in the game, and a slice of TeamScores
@@ -25,28 +25,25 @@ type TeamsScores struct {
 }
 
 // GetTeamsScoresRaw queries a Sauerbraten server at addr on port for the teams' names and scores and returns the raw response and/or an error in case something went wrong or the server is not running a team mode.
-func (s *Server) GetTeamsScoresRaw() (TeamsScoresRaw, error) {
-	teamsScoresRaw := TeamsScoresRaw{}
+func (s *Server) GetTeamsScoresRaw() (teamsScoresRaw TeamsScoresRaw, err error) {
+	teamsScoresRaw = TeamsScoresRaw{}
 
 	request := buildRequest(EXTENDED_INFO, EXTENDED_INFO_TEAMS_SCORES, 0)
 	response, err := s.queryServer(request)
 	if err != nil {
-		return teamsScoresRaw, err
+		return
 	}
+
+	// ignore first 3 bytes: EXTENDED_INFO, EXTENDED_INFO_TEAMS_SCORES, EXTENDED_INFO_ACK
+	response = response[3:]
 
 	positionInResponse = 0
 
-	// first int is EXTENDED_INFO = 0
-	_ = dumpInt(response)
-
-	// next int is EXTENDED_INFO_TEAMS_SCORES = 2
-	_ = dumpInt(response)
-
-	// next int is EXT_ACK = -1
-	_ = dumpInt(response)
-
-	// next int is EXT_VERSION
-	_ = dumpInt(response)
+	// check for correct extinfo protocol version
+	if dumpInt(response) != EXTENDED_INFO_VERSION {
+		err = errors.New("extinfo: wrong extinfo protocol version")
+		return
+	}
 
 	// next int describes wether the server runs a team mode or not
 	isTeamMode := true
@@ -59,17 +56,14 @@ func (s *Server) GetTeamsScoresRaw() (TeamsScoresRaw, error) {
 
 	if !isTeamMode {
 		// no team scores following
-		return teamsScoresRaw, errors.New("extinfo: server is not running a team mode")
+		err = errors.New("extinfo: server is not running a team mode")
+		return
 	}
 
-	name := ""
-	score := 0
-	numBases := 0
-
 	for response[positionInResponse] != 0x0 {
-		name = dumpString(response)
-		score = dumpInt(response)
-		numBases = dumpInt(response)
+		name := dumpString(response)
+		score := dumpInt(response)
+		numBases := dumpInt(response)
 
 		bases := make([]int, 0)
 
@@ -80,7 +74,7 @@ func (s *Server) GetTeamsScoresRaw() (TeamsScoresRaw, error) {
 		teamsScoresRaw.Scores = append(teamsScoresRaw.Scores, TeamScore{name, score, bases})
 	}
 
-	return teamsScoresRaw, nil
+	return
 }
 
 // GetTeamsScores queries a Sauerbraten server at addr on port for the teams' names and scores and returns the parsed response and/or an error in case something went wrong or the server is not running a team mode. Parsed response means that the int value sent as game mode is translated into the human readable name, e.g. '12' -> "insta ctf".

@@ -54,6 +54,12 @@ func getString(buf []byte) (string, int) {
 	return str, end
 }
 
+// returns a byte and increases the position by one
+func dumpByte(buf []byte) byte {
+	positionInResponse++
+	return buf[positionInResponse-1]
+}
+
 // returns a decoded int and sets the position to the next attribute's first byte
 func dumpInt(buf []byte) int {
 	decodedInt, bytesRead := getInt(buf[positionInResponse:])

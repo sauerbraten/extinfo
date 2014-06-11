@@ -33,20 +33,14 @@ type PlayerInfo struct {
 }
 
 // GetPlayerInfoRaw returns the raw information about the player with the given clientNum.
-func (s *Server) GetPlayerInfoRaw(clientNum int) (PlayerInfoRaw, error) {
-	playerInfoRaw := PlayerInfoRaw{}
-
+func (s *Server) GetPlayerInfoRaw(clientNum int) (playerInfoRaw PlayerInfoRaw, err error) {
 	response, err := s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, clientNum))
 	if err != nil {
-		return playerInfoRaw, err
+		return
 	}
 
-	if response[5] != EXTENDED_INFO_NO_ERROR {
-		// server says the cn was invalid
-		return playerInfoRaw, errors.New("extinfo: invalid cn\n")
-	}
-
-	return parsePlayerInfoResponse(response), nil
+	playerInfoRaw, err = parsePlayerInfoResponse(response)
+	return
 }
 
 // GetPlayerInfo returns the parsed information about the player with the given clientNum.
@@ -67,8 +61,8 @@ func (s *Server) GetPlayerInfo(clientNum int) (PlayerInfo, error) {
 }
 
 // GetAllPlayerInfo returns the Information of all Players (including spectators) as a []PlayerInfo
-func (s *Server) GetAllPlayerInfo() (map[int]PlayerInfo, error) {
-	allPlayerInfo := map[int]PlayerInfo{}
+func (s *Server) GetAllPlayerInfo() (allPlayerInfo map[int]PlayerInfo, err error) {
+	allPlayerInfo = map[int]PlayerInfo{}
 
 	response, err := s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, -1))
 	if err != nil {
@@ -77,22 +71,44 @@ func (s *Server) GetAllPlayerInfo() (map[int]PlayerInfo, error) {
 
 	// response is multiple 64-byte responses, one for each player
 	// parse each 64 byte packet (without the first 7 bytes) on its own and append to allPlayerInfo
+	playerInfoRaw := PlayerInfoRaw{}
 	for i := 0; i < len(response); i += 64 {
-		playerInfoRaw := parsePlayerInfoResponse(response[i : i+64])
+		playerInfoRaw, err = parsePlayerInfoResponse(response[i : i+64])
+		if err != nil {
+			return
+		}
+
 		allPlayerInfo[playerInfoRaw.ClientNum] = PlayerInfo{playerInfoRaw, getWeaponName(playerInfoRaw.Weapon), getStateName(playerInfoRaw.State), getPrivilegeName(playerInfoRaw.Privilege)}
 	}
 
-	return allPlayerInfo, nil
+	return
 }
 
 // own function, because it is used in GetPlayerInfo() + GetAllPlayerInfo()
-func parsePlayerInfoResponse(response []byte) PlayerInfoRaw {
-	// throw away 7 first bytes (EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, cn, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_PLAYER_STATS_RESP_STATS)
-	response = response[7:]
+func parsePlayerInfoResponse(response []byte) (playerInfoRaw PlayerInfoRaw, err error) {
+	// throw away 4 first bytes (EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, cn, EXTENDED_INFO_ACK)
+	response = response[4:]
 
 	positionInResponse = 0
 
-	playerInfoRaw := PlayerInfoRaw{
+	//  EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_PLAYER_STATS_RESP_STATS)
+	// check for correct extinfo protocol version
+	if dumpByte(response) != EXTENDED_INFO_VERSION {
+		err = errors.New("extinfo: wrong extinfo protocol version")
+		return
+	}
+
+	if dumpByte(response) != EXTENDED_INFO_NO_ERROR {
+		err = errors.New("extinfo: invalid client number")
+		return
+	}
+
+	if dumpByte(response) != EXTENDED_INFO_PLAYER_STATS_RESPONSE_STATS {
+		err = errors.New("extinfo: illegal response type")
+		return
+	}
+
+	playerInfoRaw = PlayerInfoRaw{
 		ClientNum: dumpInt(response),
 		Ping:      dumpInt(response),
 		Name:      dumpString(response),
@@ -113,5 +129,5 @@ func parsePlayerInfoResponse(response []byte) PlayerInfoRaw {
 	ipBytes := response[positionInResponse : positionInResponse+4]
 	playerInfoRaw.IP = net.IPv4(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3])
 
-	return playerInfoRaw
+	return
 }
