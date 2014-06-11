@@ -5,9 +5,9 @@ package extinfo
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"net"
 	"time"
-        "errors"
 )
 
 // builds a request
@@ -58,19 +58,19 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	// first byte = 0, second byte = 1, 4th byte 0 (no error) --> player info response with no error, wait for following packages
+	// make sure we have a player info response with no error
 	if response[0] == EXTENDED_INFO_NO_ERROR && response[1] == EXTENDED_INFO_PLAYER_STATS && response[5] == EXTENDED_INFO_NO_ERROR {
-		// if third byte = -1, information was queried for all players --> multiple packages following
+		// if third byte = -1, information was queried for all players → multiple packages following
 		if response[2] == EXTENDED_INFO_ACK {
 			// trim null bytes
 			response = bytes.TrimRight(response, "\x00")
 
-                        // Some servers (noobmod) silently fail to implement responses. Fail gracefully.
-                        if len(response) < 7 {
-                            return []byte{}, errors.New("extinfo: invalid response\n")
-                        }
+			// some server mods silently fail to implement responses → fail gracefully
+			if len(response) < 7 {
+				return []byte{}, errors.New("extinfo: invalid response")
+			}
 
-			// get player cns out of the reponse: 7 first bytes are EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server EXTENDED_INFO_PLAYER_STATS_RESP_IDS byte
+			// get player cns out of the reponse, ignore 7 first bytes, which are: EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server EXTENDED_INFO_PLAYER_STATS_RESP_IDS byte
 			playerCNs := response[7:]
 
 			// for each client, receive a packet and append it to the response

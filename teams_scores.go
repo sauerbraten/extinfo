@@ -59,14 +59,14 @@ func (s *Server) GetTeamsScoresRaw() (TeamsScoresRaw, error) {
 
 	if !isTeamMode {
 		// no team scores following
-		return teamsScoresRaw, errors.New("extinfo: server is not running a team mode\n")
+		return teamsScoresRaw, errors.New("extinfo: server is not running a team mode")
 	}
 
 	name := ""
 	score := 0
 	numBases := 0
 
-	for response[positionInResponse] != 0x00 {
+	for response[positionInResponse] != 0x0 {
 		name = dumpString(response)
 		score = dumpInt(response)
 		numBases = dumpInt(response)

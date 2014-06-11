@@ -41,7 +41,7 @@ func (s *Server) GetPlayerInfoRaw(clientNum int) (PlayerInfoRaw, error) {
 		return playerInfoRaw, err
 	}
 
-	if response[5] != 0x00 {
+	if response[5] != EXTENDED_INFO_NO_ERROR {
 		// server says the cn was invalid
 		return playerInfoRaw, errors.New("extinfo: invalid cn\n")
 	}
@@ -87,7 +87,7 @@ func (s *Server) GetAllPlayerInfo() (map[int]PlayerInfo, error) {
 
 // own function, because it is used in GetPlayerInfo() + GetAllPlayerInfo()
 func parsePlayerInfoResponse(response []byte) PlayerInfoRaw {
-	// throw away 7 first ints (EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, cn, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_PLAYER_STATS_RESP_STATS)
+	// throw away 7 first bytes (EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, cn, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_PLAYER_STATS_RESP_STATS)
 	response = response[7:]
 
 	positionInResponse = 0
