@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"net"
 	"time"
+        "errors"
 )
 
 // builds a request
@@ -63,6 +64,11 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 		if response[2] == EXTENDED_INFO_ACK {
 			// trim null bytes
 			response = bytes.TrimRight(response, "\x00")
+
+                        // Some servers (noobmod) silently fail to implement responses. Fail gracefully.
+                        if len(response) < 7 {
+                            return []byte{}, errors.New("extinfo: invalid response\n")
+                        }
 
 			// get player cns out of the reponse: 7 first bytes are EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server EXTENDED_INFO_PLAYER_STATS_RESP_IDS byte
 			playerCNs := response[7:]
