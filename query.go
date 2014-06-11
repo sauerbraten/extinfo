@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"net"
 	"time"
+        "errors"
 )
 
 // builds a request
@@ -58,11 +59,16 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 	}
 
 	// first byte = 0, second byte = 1, 4th byte 0 (no error) --> player info response with no error, wait for following packages
-	if response[0] == 0x00 && response[1] == 0x01 && response[5] == 0x00 {
+	if response[0] == EXTENDED_INFO_NO_ERROR && response[1] == EXTENDED_INFO_PLAYER_STATS && response[5] == EXTENDED_INFO_NO_ERROR {
 		// if third byte = -1, information was queried for all players --> multiple packages following
-		if response[2] == 0xFF {
+		if response[2] == EXTENDED_INFO_ACK {
 			// trim null bytes
 			response = bytes.TrimRight(response, "\x00")
+
+                        // Some servers (noobmod) silently fail to implement responses. Fail gracefully.
+                        if len(response) < 7 {
+                            return []byte{}, errors.New("extinfo: invalid response\n")
+                        }
 
 			// get player cns out of the reponse: 7 first bytes are EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server EXTENDED_INFO_PLAYER_STATS_RESP_IDS byte
 			playerCNs := response[7:]
