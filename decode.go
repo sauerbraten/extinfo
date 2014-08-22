@@ -3,6 +3,7 @@ package extinfo
 import (
 	"bytes"
 	"log"
+	"regexp"
 )
 
 // the current position in a response ([]byte)
@@ -71,5 +72,11 @@ func dumpInt(buf []byte) int {
 func dumpString(buf []byte) string {
 	decodedString, bytesRead := getString(buf[positionInResponse:])
 	positionInResponse = positionInResponse + bytesRead
-	return decodedString
+	return sanitizeString(decodedString)
+}
+
+// removes C 0x00 bytes and sauer color codes from strings (especially things like \f3 etc. from server description)
+func sanitizeString(s string) string {
+	re := regexp.MustCompile("\\f.|\\x00")
+	return re.ReplaceAllLiteralString(s, "")
 }
