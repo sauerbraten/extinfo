@@ -22,9 +22,7 @@ type BasicInfo struct {
 }
 
 // GetBasicInfoRaw queries a Sauerbraten server at addr on port and returns the raw response or an error in case something went wrong. Raw response means that the int values sent as game mode and master mode are NOT translated into the human readable name.
-func (s *Server) GetBasicInfoRaw() (BasicInfoRaw, error) {
-	basicInfoRaw := BasicInfoRaw{}
-
+func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 	response, err := s.queryServer(buildRequest(BASIC_INFO, 0, 0))
 	if err != nil {
 		return basicInfoRaw, err
@@ -33,23 +31,56 @@ func (s *Server) GetBasicInfoRaw() (BasicInfoRaw, error) {
 	positionInResponse = 0
 
 	// first int is BASIC_INFO = 1
-	_ = dumpInt(response)
-	basicInfoRaw.NumberOfClients = dumpInt(response)
+	_, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	basicInfoRaw.NumberOfClients, err = dumpInt(response)
+	if err != nil {
+		return
+	}
 	// next int is always 5 or 7, the number of additional attributes after the playercount and before the strings for map and description
 	sevenAttributes := false
-	if dumpInt(response) == 7 {
+	numberOfAttributes, err := dumpInt(response)
+	if err != nil {
+		return
+	}
+	if numberOfAttributes == 7 {
 		sevenAttributes = true
 	}
-	basicInfoRaw.ProtocolVersion = dumpInt(response)
-	basicInfoRaw.GameMode = dumpInt(response)
-	basicInfoRaw.SecsLeft = dumpInt(response)
-	basicInfoRaw.MaxNumberOfClients = dumpInt(response)
-	basicInfoRaw.MasterMode = dumpInt(response)
+	basicInfoRaw.ProtocolVersion, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	basicInfoRaw.GameMode, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	basicInfoRaw.SecsLeft, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	basicInfoRaw.MaxNumberOfClients, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	basicInfoRaw.MasterMode, err = dumpInt(response)
+	if err != nil {
+		return
+	}
 	if sevenAttributes {
-		if dumpInt(response) == 1 {
+		var isPausedValue int
+		isPausedValue, err = dumpInt(response)
+		if err != nil {
+			return
+		}
+		if isPausedValue == 1 {
 			basicInfoRaw.Paused = true
 		}
-		basicInfoRaw.GameSpeed = dumpInt(response)
+		basicInfoRaw.GameSpeed, err = dumpInt(response)
+		if err != nil {
+			return
+		}
 	} else {
 		basicInfoRaw.GameSpeed = 100
 	}

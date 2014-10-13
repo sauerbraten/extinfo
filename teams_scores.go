@@ -26,8 +26,6 @@ type TeamsScores struct {
 
 // GetTeamsScoresRaw queries a Sauerbraten server at addr on port for the teams' names and scores and returns the raw response and/or an error in case something went wrong or the server is not running a team mode.
 func (s *Server) GetTeamsScoresRaw() (teamsScoresRaw TeamsScoresRaw, err error) {
-	teamsScoresRaw = TeamsScoresRaw{}
-
 	request := buildRequest(EXTENDED_INFO, EXTENDED_INFO_TEAMS_SCORES, 0)
 	response, err := s.queryServer(request)
 	if err != nil {
@@ -40,19 +38,33 @@ func (s *Server) GetTeamsScoresRaw() (teamsScoresRaw TeamsScoresRaw, err error) 
 	positionInResponse = 0
 
 	// check for correct extinfo protocol version
-	if dumpInt(response) != EXTENDED_INFO_VERSION {
+	version, err := dumpInt(response)
+	if err != nil {
+		return
+	}
+	if version != EXTENDED_INFO_VERSION {
 		err = errors.New("extinfo: wrong extinfo protocol version")
 		return
 	}
 
 	// next int describes wether the server runs a team mode or not
 	isTeamMode := true
-	if dumpInt(response) != 0 {
+	teamModeErrorValue, err := dumpInt(response)
+	if err != nil {
+		return
+	}
+	if teamModeErrorValue != 0 {
 		isTeamMode = false
 	}
 
-	teamsScoresRaw.GameMode = dumpInt(response)
-	teamsScoresRaw.SecsLeft = dumpInt(response)
+	teamsScoresRaw.GameMode, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	teamsScoresRaw.SecsLeft, err = dumpInt(response)
+	if err != nil {
+		return
+	}
 
 	if !isTeamMode {
 		// no team scores following
@@ -62,13 +74,26 @@ func (s *Server) GetTeamsScoresRaw() (teamsScoresRaw TeamsScoresRaw, err error) 
 
 	for response[positionInResponse] != 0x0 {
 		name := dumpString(response)
-		score := dumpInt(response)
-		numBases := dumpInt(response)
+		var score int
+		score, err = dumpInt(response)
+		if err != nil {
+			return
+		}
+		var numBases int
+		numBases, err = dumpInt(response)
+		if err != nil {
+			return
+		}
 
-		bases := make([]int, 0)
+		bases := make([]int, numBases)
 
 		for i := 0; i < numBases; i++ {
-			bases = append(bases, dumpInt(response))
+			var base int
+			base, err = dumpInt(response)
+			if err != nil {
+				return
+			}
+			bases = append(bases, base)
 		}
 
 		teamsScoresRaw.Scores = append(teamsScoresRaw.Scores, TeamScore{name, score, bases})

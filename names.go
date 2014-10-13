@@ -23,29 +23,49 @@ var stateNames = []string{"alive", "dead", "spawning", "lagged", "edited", "spec
 // wrapper function around masterModeNames
 // returns the human readable name of the master mode as a string
 func getMasterModeName(masterMode int) string {
+	if masterMode < -1 || masterMode >= len(masterModeNames)-1 {
+		return "unknown"
+	}
+
 	return masterModeNames[masterMode+1]
 }
 
 // wrapper function around gameModeNames
 // returns the human readable name of the game mode as a string
 func getGameModeName(gameMode int) string {
+	if gameMode < 0 || gameMode >= len(gameModeNames) {
+		return "unknown"
+	}
+
 	return gameModeNames[gameMode]
 }
 
 // wrapper function around weaponNames
 // returns the human readable name of the weapon as a string
 func getWeaponName(weapon int) string {
+	if weapon < 0 || weapon >= len(weaponNames) {
+		return "unknown"
+	}
+
 	return weaponNames[weapon]
 }
 
 // wrapper function around privilegeNames
 // returns the human readable name of the privilege as a string
 func getPrivilegeName(privilege int) string {
+	if privilege < 0 || privilege >= len(privilegeNames) {
+		return "unknown"
+	}
+
 	return privilegeNames[privilege]
 }
 
 // wrapper function around stateNames
 // returns the human readable name of the state as a string
 func getStateName(state int) string {
+	if state < 0 || state >= len(stateNames) {
+		return "unknown"
+	}
+
 	return stateNames[state]
 }

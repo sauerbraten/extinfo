@@ -44,9 +44,7 @@ func (s *Server) GetPlayerInfoRaw(clientNum int) (playerInfoRaw PlayerInfoRaw, e
 }
 
 // GetPlayerInfo returns the parsed information about the player with the given clientNum.
-func (s *Server) GetPlayerInfo(clientNum int) (PlayerInfo, error) {
-	playerInfo := PlayerInfo{}
-
+func (s *Server) GetPlayerInfo(clientNum int) (playerInfo PlayerInfo, err error) {
 	playerInfoRaw, err := s.GetPlayerInfoRaw(clientNum)
 	if err != nil {
 		return playerInfo, err
@@ -91,7 +89,7 @@ func parsePlayerInfoResponse(response []byte) (playerInfoRaw PlayerInfoRaw, err 
 
 	positionInResponse = 0
 
-	//  EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_PLAYER_STATS_RESP_STATS)
+	// next three bytes are EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_PLAYER_STATS_RESP_STATS
 	// check for correct extinfo protocol version
 	if dumpByte(response) != EXTENDED_INFO_VERSION {
 		err = errors.New("extinfo: wrong extinfo protocol version")
@@ -108,21 +106,56 @@ func parsePlayerInfoResponse(response []byte) (playerInfoRaw PlayerInfoRaw, err 
 		return
 	}
 
-	playerInfoRaw = PlayerInfoRaw{
-		ClientNum: dumpInt(response),
-		Ping:      dumpInt(response),
-		Name:      dumpString(response),
-		Team:      dumpString(response),
-		Frags:     dumpInt(response),
-		Flags:     dumpInt(response),
-		Deaths:    dumpInt(response),
-		Teamkills: dumpInt(response),
-		Damage:    dumpInt(response),
-		Health:    dumpInt(response),
-		Armour:    dumpInt(response),
-		Weapon:    dumpInt(response),
-		Privilege: dumpInt(response),
-		State:     dumpInt(response),
+	// set fields in raw player info
+	playerInfoRaw.ClientNum, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	playerInfoRaw.Ping, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	playerInfoRaw.Name = dumpString(response)
+	playerInfoRaw.Team = dumpString(response)
+	playerInfoRaw.Frags, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	playerInfoRaw.Flags, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	playerInfoRaw.Deaths, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	playerInfoRaw.Teamkills, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	playerInfoRaw.Damage, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	playerInfoRaw.Health, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	playerInfoRaw.Armour, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	playerInfoRaw.Weapon, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	playerInfoRaw.Privilege, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	playerInfoRaw.State, err = dumpInt(response)
+	if err != nil {
+		return
 	}
 
 	// IP from next 4 bytes

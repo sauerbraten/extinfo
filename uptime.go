@@ -1,8 +1,9 @@
 package extinfo
 
 // GetUptime returns the uptime of the server in seconds.
-func (s *Server) GetUptime() (int, error) {
-	response, err := s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_UPTIME, 0))
+func (s *Server) GetUptime() (uptime int, err error) {
+	var response []byte
+	response, err = s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_UPTIME, 0))
 	if err != nil {
 		return -1, err
 	}
@@ -10,17 +11,33 @@ func (s *Server) GetUptime() (int, error) {
 	positionInResponse = 0
 
 	// first int is EXTENDED_INFO
-	_ = dumpInt(response)
+	_, err = dumpInt(response)
+	if err != nil {
+		return
+	}
 
 	// next int is EXT_EXTENDED_INFO_UPTIME = 0
-	_ = dumpInt(response)
+	_, err = dumpInt(response)
+	if err != nil {
+		return
+	}
 
 	// next int is EXT_ACK = -1
-	_ = dumpInt(response)
+	_, err = dumpInt(response)
+	if err != nil {
+		return
+	}
 
 	// next int is EXT_VERSION
-	_ = dumpInt(response)
+	_, err = dumpInt(response)
+	if err != nil {
+		return
+	}
 
 	// next int is the actual uptime
-	return dumpInt(response), nil
+	uptime, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	return
 }
