@@ -26,18 +26,18 @@ Here is code to get you the state of the PSL1 server:
 
 	import (
 		"fmt"
+		"time"
+
 		"github.com/sauerbraten/extinfo"
-		"net"
 	)
 
 	func main() {
-		addr, err := net.ResolveUDPAddr("udp", "sauerleague.org:10000")
+		psl1, err := extinfo.NewServer("sauerleague.org", 10000, 3*time.Second)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		psl1 := extinfo.NewServer(addr)
 		basicInfo, err := psl1.GetBasicInfo()
 		if err != nil {
 			fmt.Print("Error getting basic information: ", err)
@@ -72,7 +72,12 @@ The output should be something like this:
 	...
 
 	func main() {
-		psl1 := extinfo.NewServer("sauerleague.org", 10000)
+		psl1, err := extinfo.NewServer("sauerleague.org", 10000, 3*time.Second)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
 		playerInfo, err := psl1.GetPlayerInfo(14)
 		if err != nil {
 			fmt.Print("Error getting player information: ", err)
@@ -106,7 +111,12 @@ There is also `GetTeamsScores()` which returns all teams' scores (a TeamsScores 
 	...
 
 	func main() {
-		psl1 := extinfo.NewServer("sauerleague.org", 10000)
+		psl1, err := extinfo.NewServer("sauerleague.org", 10000, 3*time.Second)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
 		scores, err := psl1.GetTeamsScores()
 		if err != nil {
 			fmt.Print("Error getting teams' scores: ", err)

@@ -3,6 +3,7 @@ package extinfo
 
 import (
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -32,13 +33,17 @@ type Server struct {
 	timeOut time.Duration
 }
 
-func NewServer(addr *net.UDPAddr, timeOut time.Duration) (s *Server) {
-	// copy the address to not touch the original port
-	addrCopy := *addr
+func NewServer(host string, port int, timeOut time.Duration) (s *Server, err error) {
+	var addr *net.UDPAddr
+	addr, err = net.ResolveUDPAddr("udp", host+":"+strconv.Itoa(port+1))
+	if err != nil {
+		return
+	}
+
 	s = &Server{
-		addr:    &addrCopy,
+		addr:    addr,
 		timeOut: timeOut,
 	}
-	s.addr.Port++ // info port is at game server port + 1
+
 	return
 }
