@@ -1,7 +1,5 @@
 package extinfo
 
-import "log"
-
 // BasicInfoRaw contains the information sent back from the server in their raw form, i.e. no translation from ints to strings, even if possible.
 type BasicInfoRaw struct {
 	NumberOfClients    int    // the number of clients currently connected to the server (players and spectators)
@@ -29,8 +27,6 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 	if err != nil {
 		return basicInfoRaw, err
 	}
-
-	log.Println(response)
 
 	positionInResponse = 0
 
