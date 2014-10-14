@@ -1,7 +1,6 @@
 package extinfo
 
 import (
-	"bytes"
 	"errors"
 	"regexp"
 )
@@ -63,13 +62,6 @@ func getInt(buf []byte) (value int, bytesRead int, err error) {
 	return
 }
 
-// converts the next bytes up to the first \0 byte into a string
-func getString(buf []byte) (string, int) {
-	end := bytes.Index(buf, []byte{0}) + 1
-	str := string(decodeCubecode(buf[:end]))
-	return str, end
-}
-
 // returns a byte and increases the position by one
 func dumpByte(buf []byte) byte {
 	positionInResponse++
@@ -83,11 +75,23 @@ func dumpInt(buf []byte) (int, error) {
 	return decodedInt, err
 }
 
-// returns a string and sets the position to the next attribute's first byte
-func dumpString(buf []byte) string {
-	decodedString, bytesRead := getString(buf[positionInResponse:])
-	positionInResponse = positionInResponse + bytesRead
-	return sanitizeString(decodedString)
+// returns a string of the next bytes up to 0x00 and sets the position to the next attribute's first byte
+func dumpString(buf []byte) (s string, err error) {
+	value := -1
+
+	for value != 0 {
+		value, err = dumpInt(buf)
+		if err != nil {
+			return
+		}
+
+		// convert to 8-bit uint for lookup in cubecode table
+		codepoint := uint8(value)
+
+		s += string(cubeCodeChars[codepoint])
+	}
+
+	return
 }
 
 // removes C 0x00 bytes and sauer color codes from strings (especially things like \f3 etc. from server description)

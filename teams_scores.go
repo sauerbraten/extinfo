@@ -73,12 +73,18 @@ func (s *Server) GetTeamsScoresRaw() (teamsScoresRaw TeamsScoresRaw, err error) 
 	}
 
 	for response[positionInResponse] != 0x0 {
-		name := dumpString(response)
+		var name string
+		name, err = dumpString(response)
+		if err != nil {
+			return
+		}
+
 		var score int
 		score, err = dumpInt(response)
 		if err != nil {
 			return
 		}
+
 		var numBases int
 		numBases, err = dumpInt(response)
 		if err != nil {

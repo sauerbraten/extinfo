@@ -107,16 +107,27 @@ func parsePlayerInfoResponse(response []byte) (playerInfoRaw PlayerInfoRaw, err 
 	}
 
 	// set fields in raw player info
+
 	playerInfoRaw.ClientNum, err = dumpInt(response)
 	if err != nil {
 		return
 	}
+
 	playerInfoRaw.Ping, err = dumpInt(response)
 	if err != nil {
 		return
 	}
-	playerInfoRaw.Name = dumpString(response)
-	playerInfoRaw.Team = dumpString(response)
+
+	playerInfoRaw.Name, err = dumpString(response)
+	if err != nil {
+		return
+	}
+
+	playerInfoRaw.Team, err = dumpString(response)
+	if err != nil {
+		return
+	}
+
 	playerInfoRaw.Frags, err = dumpInt(response)
 	if err != nil {
 		return
