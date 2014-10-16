@@ -30,7 +30,7 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 
 	positionInResponse = 0
 
-	// first int is BASIC_INFO = 1
+	// first int is BASIC_INFO
 	_, err = dumpInt(response)
 	if err != nil {
 		return

@@ -17,7 +17,7 @@ func buildRequest(infoType int, extendedInfoType int, clientNum int) []byte {
 	// extended info request
 	if infoType == EXTENDED_INFO {
 		// player stats has to include the clientNum
-		if extendedInfoType == EXTENDED_INFO_PLAYER_STATS {
+		if extendedInfoType == EXTENDED_INFO_CLIENT_INFO {
 			request = append(request, byte(infoType), byte(extendedInfoType), byte(clientNum))
 		} else {
 			request = append(request, byte(infoType), byte(extendedInfoType))
@@ -58,51 +58,47 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	// make sure we have a player info response with no error
-	if response[0] == EXTENDED_INFO_NO_ERROR && response[1] == EXTENDED_INFO_PLAYER_STATS && response[5] == EXTENDED_INFO_NO_ERROR {
-		// if third byte = -1, information was queried for all players → multiple packages following
-		if response[2] == EXTENDED_INFO_ACK {
-			// trim null bytes
-			response = bytes.TrimRight(response, "\x00")
-
-			// some server mods silently fail to implement responses → fail gracefully
-			if len(response) < 7 {
-				return []byte{}, errors.New("extinfo: invalid response")
-			}
-
-			// get player cns out of the reponse, ignore 7 first bytes, which are: EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, clientNum, server ACK byte, server VERSION byte, server NO_ERROR byte, server EXTENDED_INFO_PLAYER_STATS_RESP_IDS byte
-			playerCNs := response[7:]
-
-			// for each client, receive a packet and append it to the response
-			playerInfos := make([]byte, 0)
-			for _ = range playerCNs {
-				// read from connection
-				response = make([]byte, 64)
-				conn.SetReadDeadline(time.Now().Add(s.timeOut))
-				_, err = bufconn.Read(response)
-
-				// append to slice
-				playerInfos = append(playerInfos, response...)
-
-				// on error, return what we already have
-				if err != nil {
-					return playerInfos, err
-				}
-			}
-
-			return playerInfos, nil
-		}
-
-		// else, only one cn was asked for --> one package following
-		playerInfoResponse := make([]byte, 64)
-		conn.SetReadDeadline(time.Now().Add(s.timeOut))
-		_, err = bufconn.Read(playerInfoResponse)
-		if err != nil {
-			return []byte{}, err
-		}
-
-		return playerInfoResponse, nil
+	// if not a response to EXTENDED_INFO_CLIENT_INFO, we are done
+	if response[0] != EXTENDED_INFO || (response[0] == EXTENDED_INFO && response[1] != EXTENDED_INFO_CLIENT_INFO) {
+		return response, nil
 	}
 
-	return response, nil
+	// handle response to EXTENDED_INFO_CLIENT_INFO
+
+	// some server mods silently fail to implement responses → fail gracefully
+	if len(response) < 7 {
+		return []byte{}, errors.New("extinfo: invalid response")
+	}
+
+	if response[5] == EXTENDED_INFO_ERROR {
+		return []byte{}, errors.New("extinfo: invalid cn")
+	}
+
+	if response[6] != EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS {
+		return []byte{}, errors.New("extinfo: invalid response")
+	}
+
+	// trim null bytes
+	response = bytes.TrimRight(response, "\x00")
+
+	// get CNs out of the reponse, ignore 7 first bytes, which are:
+	// EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, CN from request, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS
+	clientNums := response[7:]
+
+	// for each client, receive a packet and append it to the response
+	clientInfos := make([]byte, 0)
+	for _ = range clientNums {
+		// read from connection
+		clientInfo := make([]byte, 64)
+		conn.SetReadDeadline(time.Now().Add(s.timeOut))
+		_, err = bufconn.Read(clientInfo)
+		if err != nil {
+			return clientInfos, err
+		}
+
+		// append to slice
+		clientInfos = append(clientInfos, clientInfo...)
+	}
+
+	return clientInfos, nil
 }

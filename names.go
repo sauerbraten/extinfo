@@ -18,7 +18,7 @@ var privilegeNames = []string{"none", "master", "auth", "admin"}
 
 // A slice containing the state names
 // Maps the state ints to state strings
-var stateNames = []string{"alive", "dead", "spawning", "lagged", "edited", "spectator"}
+var stateNames = []string{"alive", "dead", "spawning", "lagged", "editing", "spectator"}
 
 // wrapper function around masterModeNames
 // returns the human readable name of the master mode as a string

@@ -7,7 +7,7 @@ import (
 // TeamScore (team score) contains the name of the team and the score, i.e. flags scored in flag modes / points gained for holding bases in capture modes / frags achieved in DM modes / skulls collected
 type TeamScore struct {
 	Name  string // name of the team, e.g. "good"
-	Score int    // amount of points (flags in ctf modes, frags in deathmatch modes, points in capture, skulls in collect)
+	Score int    // flags in ctf modes, frags in deathmatch modes, points in capture, skulls in collect
 	Bases []int  // the numbers/IDs of the bases the team possesses (only used in capture modes)
 }
 
