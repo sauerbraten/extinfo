@@ -4,28 +4,28 @@ import (
 	"errors"
 )
 
-// TeamScore (team score) contains the name of the team and the score, i.e. flags scored in flag modes / points gained for holding bases in capture modes / frags achieved in DM modes / skulls collected
+// TeamScore contains the name of the team and the score, i.e. flags scored in flag modes / points gained for holding bases in capture modes / frags achieved in DM modes / skulls collected
 type TeamScore struct {
 	Name  string // name of the team, e.g. "good"
 	Score int    // flags in ctf modes, frags in deathmatch modes, points in capture, skulls in collect
 	Bases []int  // the numbers/IDs of the bases the team possesses (only used in capture modes)
 }
 
-// TeamsScoresRaw (teams's scores) contains the game mode as raw int, the seconds left in the game, and a slice of TeamScores
-type TeamsScoresRaw struct {
+// TeamScoresRaw contains the game mode as raw int, the seconds left in the game, and a slice of TeamScores
+type TeamScoresRaw struct {
 	GameMode int         // current game mode
 	SecsLeft int         // the time left until intermission in seconds
 	Scores   []TeamScore // a team score for each team
 }
 
-// TeamsScores (teams's scores) contains the game mode as human readable string, the seconds left in the game, and a slice of TeamScores
-type TeamsScores struct {
-	TeamsScoresRaw
+// TeamScores contains the game mode as human readable string, the seconds left in the game, and a slice of TeamScores
+type TeamScores struct {
+	TeamScoresRaw
 	GameMode string // current game mode
 }
 
-// GetTeamsScoresRaw queries a Sauerbraten server at addr on port for the teams' names and scores and returns the raw response and/or an error in case something went wrong or the server is not running a team mode.
-func (s *Server) GetTeamsScoresRaw() (teamsScoresRaw TeamsScoresRaw, err error) {
+// GetTeamScoresRaw queries a Sauerbraten server at addr on port for the teams' names and scores and returns the raw response and/or an error in case something went wrong or the server is not running a team mode.
+func (s *Server) GetTeamScoresRaw() (teamScoresRaw TeamScoresRaw, err error) {
 	request := buildRequest(EXTENDED_INFO, EXTENDED_INFO_TEAMS_SCORES, 0)
 	response, err := s.queryServer(request)
 	if err != nil {
@@ -57,11 +57,11 @@ func (s *Server) GetTeamsScoresRaw() (teamsScoresRaw TeamsScoresRaw, err error) 
 		isTeamMode = false
 	}
 
-	teamsScoresRaw.GameMode, err = dumpInt(response)
+	teamScoresRaw.GameMode, err = dumpInt(response)
 	if err != nil {
 		return
 	}
-	teamsScoresRaw.SecsLeft, err = dumpInt(response)
+	teamScoresRaw.SecsLeft, err = dumpInt(response)
 	if err != nil {
 		return
 	}
@@ -102,23 +102,23 @@ func (s *Server) GetTeamsScoresRaw() (teamsScoresRaw TeamsScoresRaw, err error) 
 			bases = append(bases, base)
 		}
 
-		teamsScoresRaw.Scores = append(teamsScoresRaw.Scores, TeamScore{name, score, bases})
+		teamScoresRaw.Scores = append(teamScoresRaw.Scores, TeamScore{name, score, bases})
 	}
 
 	return
 }
 
-// GetTeamsScores queries a Sauerbraten server at addr on port for the teams' names and scores and returns the parsed response and/or an error in case something went wrong or the server is not running a team mode. Parsed response means that the int value sent as game mode is translated into the human readable name, e.g. '12' -> "insta ctf".
-func (s *Server) GetTeamsScores() (TeamsScores, error) {
-	teamsScores := TeamsScores{}
+// GetTeamScores queries a Sauerbraten server at addr on port for the teams' names and scores and returns the parsed response and/or an error in case something went wrong or the server is not running a team mode. Parsed response means that the int value sent as game mode is translated into the human readable name, e.g. '12' -> "insta ctf".
+func (s *Server) GetTeamScores() (TeamScores, error) {
+	teamScores := TeamScores{}
 
-	teamsScoresRaw, err := s.GetTeamsScoresRaw()
+	teamScoresRaw, err := s.GetTeamScoresRaw()
 	if err != nil {
-		return teamsScores, err
+		return teamScores, err
 	}
 
-	teamsScores.TeamsScoresRaw = teamsScoresRaw
-	teamsScores.GameMode = getGameModeName(teamsScoresRaw.GameMode)
+	teamScores.TeamScoresRaw = teamScoresRaw
+	teamScores.GameMode = getGameModeName(teamScoresRaw.GameMode)
 
-	return teamsScores, nil
+	return teamScores, nil
 }
