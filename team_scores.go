@@ -1,9 +1,6 @@
 package extinfo
 
-import (
-	"errors"
-	"log"
-)
+import "errors"
 
 // TeamScore contains the name of the team and the score, i.e. flags scored in flag modes / points gained for holding bases in capture modes / frags achieved in DM modes / skulls collected
 type TeamScore struct {
@@ -51,7 +48,6 @@ func (s *Server) GetTeamScoresRaw() (teamScoresRaw TeamScoresRaw, err error) {
 	// next int describes wether the server runs a team mode or not
 	isTeamMode := true
 	teamModeErrorValue, err := dumpInt(response)
-	log.Println("team mode err:", teamModeErrorValue)
 	if err != nil {
 		return
 	}
@@ -63,8 +59,6 @@ func (s *Server) GetTeamScoresRaw() (teamScoresRaw TeamScoresRaw, err error) {
 	if err != nil {
 		return
 	}
-
-	log.Println("pos:", positionInResponse)
 
 	teamScoresRaw.SecsLeft, err = dumpInt(response)
 	if err != nil {
@@ -78,9 +72,6 @@ func (s *Server) GetTeamScoresRaw() (teamScoresRaw TeamScoresRaw, err error) {
 	}
 
 	teamScoresRaw.Scores = map[string]TeamScore{}
-
-	log.Println("pos:", positionInResponse)
-	log.Println("response:", response)
 
 	for positionInResponse < len(response) {
 		var name string

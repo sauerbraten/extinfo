@@ -5,7 +5,6 @@ package extinfo
 import (
 	"bufio"
 	"errors"
-	"log"
 	"net"
 	"time"
 )
@@ -43,8 +42,6 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 
 	// set up a buffered reader
 	bufconn := bufio.NewReader(conn)
-
-	log.Println("request:", request)
 
 	// send the request to server
 	_, err = conn.Write(request)

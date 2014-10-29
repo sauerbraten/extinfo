@@ -2,7 +2,6 @@ package extinfo
 
 import (
 	"errors"
-	"log"
 	"net"
 )
 
@@ -90,7 +89,6 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 
 // own function, because it is used in GetClientInfo() + GetAllClientInfo()
 func parseClientInfoResponse(response []byte) (clientInfoRaw ClientInfoRaw, err error) {
-	log.Println("response:", response)
 	// throw away 4 first bytes (EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, cn, EXTENDED_INFO_ACK)
 	response = response[4:]
 
