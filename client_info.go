@@ -2,6 +2,7 @@ package extinfo
 
 import (
 	"errors"
+	"log"
 	"net"
 )
 
@@ -67,16 +68,21 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 		return allClientInfo, err
 	}
 
-	// response is multiple 64-byte responses, one for each player
+	// response is multiple 64-byte responses, one for each client
 	// parse each 64 byte packet on its own and append to allClientInfo
-	playerInfoRaw := ClientInfoRaw{}
+	clientInfoRaw := ClientInfoRaw{}
 	for i := 0; i < len(response); i += 64 {
-		playerInfoRaw, err = parseClientInfoResponse(response[i : i+64])
+		clientInfoRaw, err = parseClientInfoResponse(response[i : i+64])
 		if err != nil {
 			return
 		}
 
-		allClientInfo[playerInfoRaw.ClientNum] = ClientInfo{playerInfoRaw, getWeaponName(playerInfoRaw.Weapon), getStateName(playerInfoRaw.State), getPrivilegeName(playerInfoRaw.Privilege)}
+		allClientInfo[clientInfoRaw.ClientNum] = ClientInfo{
+			ClientInfoRaw: clientInfoRaw,
+			Weapon:        getWeaponName(clientInfoRaw.Weapon),
+			Privilege:     getPrivilegeName(clientInfoRaw.Privilege),
+			State:         getStateName(clientInfoRaw.State),
+		}
 	}
 
 	return
@@ -84,6 +90,7 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 
 // own function, because it is used in GetClientInfo() + GetAllClientInfo()
 func parseClientInfoResponse(response []byte) (playerInfoRaw ClientInfoRaw, err error) {
+	log.Println(response)
 	// throw away 4 first bytes (EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, cn, EXTENDED_INFO_ACK)
 	response = response[4:]
 

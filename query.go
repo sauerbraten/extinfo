@@ -4,8 +4,8 @@ package extinfo
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
+	"log"
 	"net"
 	"time"
 )
@@ -16,11 +16,11 @@ func buildRequest(infoType int, extendedInfoType int, clientNum int) []byte {
 
 	// extended info request
 	if infoType == EXTENDED_INFO {
+		request = append(request, byte(infoType), byte(extendedInfoType))
+
 		// player stats has to include the clientNum
 		if extendedInfoType == EXTENDED_INFO_CLIENT_INFO {
-			request = append(request, byte(infoType), byte(extendedInfoType), byte(clientNum))
-		} else {
-			request = append(request, byte(infoType), byte(extendedInfoType))
+			request = append(request, byte(clientNum))
 		}
 	}
 
@@ -44,6 +44,8 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 	// set up a buffered reader
 	bufconn := bufio.NewReader(conn)
 
+	log.Println(request)
+
 	// send the request to server
 	_, err = conn.Write(request)
 	if err != nil {
@@ -52,10 +54,18 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 
 	// receive response from server with 5 second timeout
 	response := make([]byte, 64)
+	var bytesRead int
 	conn.SetReadDeadline(time.Now().Add(s.timeOut))
-	_, err = bufconn.Read(response)
+	bytesRead, err = bufconn.Read(response)
 	if err != nil {
 		return []byte{}, err
+	}
+
+	// trim response to what's actually from the server
+	response = response[:bytesRead]
+
+	if bytesRead < 2 {
+		return []byte{}, errors.New("extinfo: invalid response")
 	}
 
 	// if not a response to EXTENDED_INFO_CLIENT_INFO, we are done
@@ -78,12 +88,11 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 		return []byte{}, errors.New("extinfo: invalid response")
 	}
 
-	// trim null bytes
-	response = bytes.TrimRight(response, "\x00")
-
 	// get CNs out of the reponse, ignore 7 first bytes, which are:
 	// EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, CN from request, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS
 	clientNums := response[7:]
+
+	log.Println("clientNums:", clientNums)
 
 	// for each client, receive a packet and append it to the response
 	clientInfos := make([]byte, 0)

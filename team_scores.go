@@ -72,6 +72,8 @@ func (s *Server) GetTeamScoresRaw() (teamScoresRaw TeamScoresRaw, err error) {
 		return
 	}
 
+	teamScoresRaw.Scores = map[string]TeamScore{}
+
 	for response[positionInResponse] != 0x0 {
 		var name string
 		name, err = dumpString(response)
@@ -89,6 +91,10 @@ func (s *Server) GetTeamScoresRaw() (teamScoresRaw TeamScoresRaw, err error) {
 		numBases, err = dumpInt(response)
 		if err != nil {
 			return
+		}
+
+		if numBases < 0 {
+			numBases = 0
 		}
 
 		bases := make([]int, numBases)

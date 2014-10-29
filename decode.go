@@ -77,18 +77,22 @@ func dumpInt(buf []byte) (int, error) {
 
 // returns a string of the next bytes up to 0x00 and sets the position to the next attribute's first byte
 func dumpString(buf []byte) (s string, err error) {
-	value := -1
+	var value int
+	value, err = dumpInt(buf)
+	if err != nil {
+		return
+	}
 
 	for value != 0 {
-		value, err = dumpInt(buf)
-		if err != nil {
-			return
-		}
-
 		// convert to 8-bit uint for lookup in cubecode table
 		codepoint := uint8(value)
 
 		s += string(cubeCodeChars[codepoint])
+
+		value, err = dumpInt(buf)
+		if err != nil {
+			return
+		}
 	}
 
 	return
