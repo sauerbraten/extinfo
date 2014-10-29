@@ -44,7 +44,7 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 	// set up a buffered reader
 	bufconn := bufio.NewReader(conn)
 
-	log.Println(request)
+	log.Println("request:", request)
 
 	// send the request to server
 	_, err = conn.Write(request)
@@ -91,8 +91,6 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 	// get CNs out of the reponse, ignore 7 first bytes, which are:
 	// EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, CN from request, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS
 	clientNums := response[7:]
-
-	log.Println("clientNums:", clientNums)
 
 	// for each client, receive a packet and append it to the response
 	clientInfos := make([]byte, 0)
