@@ -8,55 +8,55 @@ import (
 
 // ClientInfoRaw contains the raw information sent back from the server, i.e. state and privilege are ints.
 type ClientInfoRaw struct {
-	ClientNum int    // player's client number or cn
-	Ping      int    // player's ping
-	Name      string // player's displayed name
-	Team      string // the team the player is on, e.g. "good"
-	Frags     int    // amount of frags/kills
-	Flags     int    // amount of flags the player scored
-	Deaths    int    // amount of deaths
-	Teamkills int    // amount of teamkills
-	Damage    int    // damage ?!?
+	ClientNum int    // client number or cn
+	Ping      int    // client's ping to server
+	Name      string //
+	Team      string // name of the team the client is on, e.g. "good"
+	Frags     int    // kills
+	Flags     int    // number of flags the player scored
+	Deaths    int    //
+	Teamkills int    //
+	Damage    int    // damage dealt by the client
 	Health    int    // remaining HP (health points)
 	Armour    int    // remaining armour
-	Weapon    int    // weapon the player currently has selected
+	Weapon    int    // weapon the client currently has selected
 	Privilege int    // 0 ("none"), 1 ("master") or 2 ("admin")
-	State     int    // player state, e.g. 1 ("alive") or 5 ("spectator"), see names.go for int -> string mapping
-	IP        net.IP // player IP (only the first 3 bytes)
+	State     int    // client state, e.g. 1 ("alive") or 5 ("spectator"), see names.go for int -> string mapping
+	IP        net.IP // client IP (only the first 3 bytes)
 }
 
 // ClientInfo contains the parsed information sent back from the server, i.e. weapon, state and privilege are translated into human readable strings.
 type ClientInfo struct {
 	ClientInfoRaw
-	Weapon    string // weapon the player currently has selected
+	Weapon    string // weapon the client currently has selected
 	Privilege string // "none", "master" or "admin"
-	State     string // player state, e.g. "dead" or "spectator"
+	State     string // client state, e.g. "dead" or "spectator"
 }
 
-// GetClientInfoRaw returns the raw information about the player with the given clientNum.
-func (s *Server) GetClientInfoRaw(clientNum int) (playerInfoRaw ClientInfoRaw, err error) {
+// GetClientInfoRaw returns the raw information about the client with the given clientNum.
+func (s *Server) GetClientInfoRaw(clientNum int) (clientInfoRaw ClientInfoRaw, err error) {
 	response, err := s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, clientNum))
 	if err != nil {
 		return
 	}
 
-	playerInfoRaw, err = parseClientInfoResponse(response)
+	clientInfoRaw, err = parseClientInfoResponse(response)
 	return
 }
 
-// GetClientInfo returns the parsed information about the player with the given clientNum.
-func (s *Server) GetClientInfo(clientNum int) (playerInfo ClientInfo, err error) {
-	playerInfoRaw, err := s.GetClientInfoRaw(clientNum)
+// GetClientInfo returns the parsed information about the client with the given clientNum.
+func (s *Server) GetClientInfo(clientNum int) (clientInfo ClientInfo, err error) {
+	clientInfoRaw, err := s.GetClientInfoRaw(clientNum)
 	if err != nil {
-		return playerInfo, err
+		return clientInfo, err
 	}
 
-	playerInfo.ClientInfoRaw = playerInfoRaw
-	playerInfo.Weapon = getWeaponName(playerInfo.ClientInfoRaw.Weapon)
-	playerInfo.Privilege = getPrivilegeName(playerInfo.ClientInfoRaw.Privilege)
-	playerInfo.State = getStateName(playerInfo.ClientInfoRaw.State)
+	clientInfo.ClientInfoRaw = clientInfoRaw
+	clientInfo.Weapon = getWeaponName(clientInfo.ClientInfoRaw.Weapon)
+	clientInfo.Privilege = getPrivilegeName(clientInfo.ClientInfoRaw.Privilege)
+	clientInfo.State = getStateName(clientInfo.ClientInfoRaw.State)
 
-	return playerInfo, nil
+	return clientInfo, nil
 }
 
 // GetAllClientInfo returns the ClientInfo of all Players (including spectators) as a []ClientInfo
@@ -89,7 +89,7 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 }
 
 // own function, because it is used in GetClientInfo() + GetAllClientInfo()
-func parseClientInfoResponse(response []byte) (playerInfoRaw ClientInfoRaw, err error) {
+func parseClientInfoResponse(response []byte) (clientInfoRaw ClientInfoRaw, err error) {
 	log.Println(response)
 	// throw away 4 first bytes (EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, cn, EXTENDED_INFO_ACK)
 	response = response[4:]
@@ -114,72 +114,72 @@ func parseClientInfoResponse(response []byte) (playerInfoRaw ClientInfoRaw, err 
 		return
 	}
 
-	// set fields in raw player info
+	// set fields in raw client info
 
-	playerInfoRaw.ClientNum, err = dumpInt(response)
-	if err != nil {
-		return
-	}
-
-	playerInfoRaw.Ping, err = dumpInt(response)
+	clientInfoRaw.ClientNum, err = dumpInt(response)
 	if err != nil {
 		return
 	}
 
-	playerInfoRaw.Name, err = dumpString(response)
+	clientInfoRaw.Ping, err = dumpInt(response)
 	if err != nil {
 		return
 	}
 
-	playerInfoRaw.Team, err = dumpString(response)
+	clientInfoRaw.Name, err = dumpString(response)
 	if err != nil {
 		return
 	}
 
-	playerInfoRaw.Frags, err = dumpInt(response)
+	clientInfoRaw.Team, err = dumpString(response)
 	if err != nil {
 		return
 	}
-	playerInfoRaw.Flags, err = dumpInt(response)
+
+	clientInfoRaw.Frags, err = dumpInt(response)
 	if err != nil {
 		return
 	}
-	playerInfoRaw.Deaths, err = dumpInt(response)
+	clientInfoRaw.Flags, err = dumpInt(response)
 	if err != nil {
 		return
 	}
-	playerInfoRaw.Teamkills, err = dumpInt(response)
+	clientInfoRaw.Deaths, err = dumpInt(response)
 	if err != nil {
 		return
 	}
-	playerInfoRaw.Damage, err = dumpInt(response)
+	clientInfoRaw.Teamkills, err = dumpInt(response)
 	if err != nil {
 		return
 	}
-	playerInfoRaw.Health, err = dumpInt(response)
+	clientInfoRaw.Damage, err = dumpInt(response)
 	if err != nil {
 		return
 	}
-	playerInfoRaw.Armour, err = dumpInt(response)
+	clientInfoRaw.Health, err = dumpInt(response)
 	if err != nil {
 		return
 	}
-	playerInfoRaw.Weapon, err = dumpInt(response)
+	clientInfoRaw.Armour, err = dumpInt(response)
 	if err != nil {
 		return
 	}
-	playerInfoRaw.Privilege, err = dumpInt(response)
+	clientInfoRaw.Weapon, err = dumpInt(response)
 	if err != nil {
 		return
 	}
-	playerInfoRaw.State, err = dumpInt(response)
+	clientInfoRaw.Privilege, err = dumpInt(response)
+	if err != nil {
+		return
+	}
+	clientInfoRaw.State, err = dumpInt(response)
 	if err != nil {
 		return
 	}
 
 	// IP from next 4 bytes
 	ipBytes := response[positionInResponse : positionInResponse+4]
-	playerInfoRaw.IP = net.IPv4(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3])
+	clientInfoRaw.IP = net.IPv4(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3])
 
 	return
 }
