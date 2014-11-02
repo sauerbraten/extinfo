@@ -1,5 +1,3 @@
-// +build go1.1
-
 package extinfo
 
 import (
@@ -35,10 +33,10 @@ func buildRequest(infoType int, extendedInfoType int, clientNum int) []byte {
 func (s *Server) queryServer(request []byte) ([]byte, error) {
 	// connect to server at port+1 (port is the port you connect to in game, sauerbraten listens on the one higher port for BasicInfo queries
 	conn, err := net.DialUDP("udp", nil, s.addr)
-	defer conn.Close()
 	if err != nil {
 		return []byte{}, err
 	}
+	defer conn.Close()
 
 	// set up a buffered reader
 	bufconn := bufio.NewReader(conn)

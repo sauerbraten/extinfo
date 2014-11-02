@@ -95,7 +95,7 @@ func dumpString(buf []byte) (s string, err error) {
 		}
 	}
 
-	return
+	return sanitizeString(s), err
 }
 
 // removes C 0x00 bytes and sauer color codes from strings (especially things like \f3 etc. from server description)
