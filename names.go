@@ -9,7 +9,7 @@ var masterModeNames = []string{"auth", "open", "veto", "locked", "private", "pas
 var gameModeNames = []string{"ffa", "coop edit", "teamplay", "instagib", "instagib team", "efficiency", "efficieny team", "tactics", "tactics team", "capture", "regen capture", "ctf", "insta ctf", "protect", "insta protect", "hold", "insta hold", "efficiency ctf", "efficiency protect", "efficiency hold", "collect", "insta collect", "efficiency collect"}
 
 // A slice containing the weapon names
-// The index of a weapon is equal to the int received in a response for player info, thus this slice maps the weapon ints to weapon strings
+// The index of a weapon is equal to the int received in a response for client info, thus this slice maps the weapon ints to weapon strings
 var weaponNames = []string{"chain saw", "shotgun", "chain gun", "rocket launcher", "rifle", "grenade launcher", "pistol", "fire ball", "ice ball", "slime ball", "bite", "barrel"}
 
 // A slice containing the privilege names

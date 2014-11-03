@@ -12,7 +12,7 @@ type ClientInfoRaw struct {
 	Flags     int    // number of flags the player scored
 	Deaths    int    //
 	Teamkills int    //
-	Damage    int    // damage dealt by the client
+	Accuracy  int    // damage the client could have dealt * 100 / damage actually dealt by the client
 	Health    int    // remaining HP (health points)
 	Armour    int    // remaining armour
 	Weapon    int    // weapon the client currently has selected
@@ -135,7 +135,7 @@ func parseClientInfoResponse(response *extinfoResponse) (clientInfoRaw ClientInf
 		return
 	}
 
-	clientInfoRaw.Damage, err = response.ReadInt()
+	clientInfoRaw.Accuracy, err = response.ReadInt()
 	if err != nil {
 		return
 	}

@@ -40,7 +40,7 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 		return
 	}
 
-	// next int is always 5 or 7, the number of additional attributes after the playercount and before the strings for map and description
+	// next int is always 5 or 7, the number of additional attributes after the clientcount and before the strings for map and description
 	sevenAttributes := false
 	numberOfAttributes, err := response.ReadInt()
 	if err != nil {
