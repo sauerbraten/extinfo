@@ -49,8 +49,8 @@ Here is code to get you the state of the PSL1 server:
 		fmt.Printf("Master Mode:                %v\n", basicInfo.MasterMode)
 		fmt.Printf("Game Mode:                  %v\n", basicInfo.GameMode)
 		fmt.Printf("Map:                        %v\n", basicInfo.Map)
-		fmt.Printf("Players:                    %v\n", basicInfo.NumberOfClients)
-		fmt.Printf("Maximum Number of Players:  %v\n", basicInfo.MaxNumberOfClients)
+		fmt.Printf("Clients:                    %v\n", basicInfo.NumberOfClients)
+		fmt.Printf("Maximum Number of Clients:  %v\n", basicInfo.MaxNumberOfClients)
 		fmt.Printf("Time Left (seconds):        %v\n", basicInfo.SecsLeft)
 		fmt.Printf("Protocol Version:           %v\n", basicInfo.ProtocolVersion)
 	}
@@ -62,12 +62,12 @@ The output should be something like this:
 	Master Mode:                auth
 	Game Mode:                  insta ctf
 	Map:                        garden
-	Players:                    14
-	Maximum Number of Players:  23
+	clients:                    14
+	Maximum Number of Clients:  23
 	Time Left (seconds):        262
 	Protocol Version:           259
 
-`GetPlayerInfo()` and `GetPlayerInfoRaw()` work pretty much the same; here is an example to get the player information of the player with the cn 4 on PSL1:
+`GetClientInfo()` and `GetClientInfoRaw()` work pretty much the same; here is an example to get the client information of the client with the cn 4 on PSL1:
 
 	...
 
@@ -78,26 +78,26 @@ The output should be something like this:
 			return
 		}
 
-		playerInfo, err := psl1.GetPlayerInfo(14)
+		clientInfo, err := psl1.GetClientInfo(14)
 		if err != nil {
-			fmt.Print("Error getting player information: ", err)
+			fmt.Print("Error getting client information: ", err)
 			return
 		}
 
-		fmt.Print("Player Information:\n")
-		fmt.Printf("Name:                       %v\n", playerInfo.Name)
-		fmt.Printf("Client Number:              %v\n", playerInfo.ClientNum)
-		fmt.Printf("Ping:                       %v\n", playerInfo.Ping)
-		fmt.Printf("Team:                       %v\n", playerInfo.Team)
-		fmt.Printf("Frags:                      %v\n", playerInfo.Frags)
-		// here you could get more things like deaths, health, armour, the player state (dead/alive/spectator/...), and so on
-		fmt.Printf("Privilege:                  %v\n", playerInfo.Privilege)
-		fmt.Printf("IP:                         %v\n", playerInfo.IP)
+		fmt.Print("Client Information:\n")
+		fmt.Printf("Name:                       %v\n", clientInfo.Name)
+		fmt.Printf("Client Number:              %v\n", clientInfo.ClientNum)
+		fmt.Printf("Ping:                       %v\n", clientInfo.Ping)
+		fmt.Printf("Team:                       %v\n", clientInfo.Team)
+		fmt.Printf("Frags:                      %v\n", clientInfo.Frags)
+		// here you could get more things like deaths, health, armour, the client state (dead/alive/spectator/...), and so on
+		fmt.Printf("Privilege:                  %v\n", clientInfo.Privilege)
+		fmt.Printf("IP:                         %v\n", clientInfo.IP)
 	}
 
 Output would look like this:
 
-	Player Information:
+	Client Information:
 	Name:                       [tBMC]Rsn
 	Client Number:              14
 	Ping:                       45
@@ -117,13 +117,13 @@ There is also `GetTeamsScores()` which returns all teams' scores (a TeamsScores 
 			return
 		}
 
-		scores, err := psl1.GetTeamsScores()
+		scores, err := psl1.GetTeamScores()
 		if err != nil {
 			fmt.Print("Error getting teams' scores: ", err)
 			return
 		}
 
-		fmt.Print("Teams' Scores:\n")
+		fmt.Print("Team Scores:\n")
 
 		fmt.Printf("Game Mode:                  %v\n", scores.GameMode)
 		fmt.Printf("Time Left (seconds):        %v\n", scores.SecsLeft)
@@ -141,7 +141,7 @@ There is also `GetTeamsScores()` which returns all teams' scores (a TeamsScores 
 
 Output:
 
-	Teams' Scores:
+	Team Scores:
 	Game Mode:                  insta ctf
 	Time Left (seconds):        114
 	Scores:
@@ -153,5 +153,5 @@ Output:
 More methods:
 
 - `GetUptime()`: returns the amount of seconds the sauerbraten server is running
-- `GetAllPlayerInfo()`: returns a PlayerInfo for every client connected to the server
-- `GetTeamsScoresRaw()`: returns a TeamsScoresRaw containing a TeamScore for every team in the current game
+- `GetAllClientInfo()`: returns a ClientInfo for every client connected to the server
+- `GetTeamScoresRaw()`: returns a TeamScoresRaw containing a TeamScore for every team in the current game

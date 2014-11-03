@@ -16,7 +16,7 @@ func buildRequest(infoType int, extendedInfoType int, clientNum int) []byte {
 	if infoType == EXTENDED_INFO {
 		request = append(request, byte(infoType), byte(extendedInfoType))
 
-		// player stats has to include the clientNum
+		// client stats has to include the clientNum (-1 for all)
 		if extendedInfoType == EXTENDED_INFO_CLIENT_INFO {
 			request = append(request, byte(clientNum))
 		}
