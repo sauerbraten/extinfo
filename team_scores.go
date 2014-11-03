@@ -1,7 +1,5 @@
 package extinfo
 
-import "errors"
-
 // TeamScore contains the name of the team and the score, i.e. flags scored in flag modes / points gained for holding bases in capture modes / frags achieved in DM modes / skulls collected
 type TeamScore struct {
 	Name  string // name of the team, e.g. "good"
@@ -30,64 +28,33 @@ func (s *Server) GetTeamScoresRaw() (teamScoresRaw TeamScoresRaw, err error) {
 		return
 	}
 
-	// ignore first 3 bytes: EXTENDED_INFO, EXTENDED_INFO_TEAMS_SCORES, EXTENDED_INFO_ACK
-	response = response[3:]
-
-	positionInResponse = 0
-
-	// check for correct extinfo protocol version
-	version, err := dumpInt(response)
-	if err != nil {
-		return
-	}
-	if version != EXTENDED_INFO_VERSION {
-		err = errors.New("extinfo: wrong extinfo protocol version")
-		return
-	}
-
-	// next int describes wether the server runs a team mode or not
-	isTeamMode := true
-	teamModeErrorValue, err := dumpInt(response)
-	if err != nil {
-		return
-	}
-	if teamModeErrorValue != 0 {
-		isTeamMode = false
-	}
-
-	teamScoresRaw.GameMode, err = dumpInt(response)
+	teamScoresRaw.GameMode, err = response.ReadInt()
 	if err != nil {
 		return
 	}
 
-	teamScoresRaw.SecsLeft, err = dumpInt(response)
+	teamScoresRaw.SecsLeft, err = response.ReadInt()
 	if err != nil {
-		return
-	}
-
-	if !isTeamMode {
-		// no team scores following
-		err = errors.New("extinfo: server is not running a team mode")
 		return
 	}
 
 	teamScoresRaw.Scores = map[string]TeamScore{}
 
-	for positionInResponse < len(response) {
+	for response.HasRemaining() {
 		var name string
-		name, err = dumpString(response)
+		name, err = response.ReadString()
 		if err != nil {
 			return
 		}
 
 		var score int
-		score, err = dumpInt(response)
+		score, err = response.ReadInt()
 		if err != nil {
 			return
 		}
 
 		var numBases int
-		numBases, err = dumpInt(response)
+		numBases, err = response.ReadInt()
 		if err != nil {
 			return
 		}
@@ -100,7 +67,7 @@ func (s *Server) GetTeamScoresRaw() (teamScoresRaw TeamScoresRaw, err error) {
 
 		for i := 0; i < numBases; i++ {
 			var base int
-			base, err = dumpInt(response)
+			base, err = response.ReadInt()
 			if err != nil {
 				return
 			}

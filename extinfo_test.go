@@ -1,57 +1,57 @@
 package extinfo
 
 import (
-	"net"
+	"log"
 	"testing"
 	"time"
 )
 
-var testAddress *net.UDPAddr
+var srv *Server
 
 func init() {
 	var err error
-	testAddress, err = net.ResolveUDPAddr("udp", "sauerleague.org:10000")
+	srv, err = NewServer("144.76.176.131", 28785, 5*time.Second)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func TestGetBasicInfo(t *testing.T) {
-	psl1 := NewServer(testAddress, 5*time.Second)
-	_, err := psl1.GetBasicInfo()
+	_, err := srv.GetBasicInfo()
 	if err != nil {
+		log.Println(err)
 		t.Fail()
 	}
 }
 
 func TestGetUptime(t *testing.T) {
-	psl1 := NewServer(testAddress, 5*time.Second)
-	_, err := psl1.GetUptime()
+	_, err := srv.GetUptime()
 	if err != nil {
+		log.Println(err)
 		t.Fail()
 	}
 }
 
-func TestGetPlayerInfo(t *testing.T) {
-	psl1 := NewServer(testAddress, 5*time.Second)
-	_, err := psl1.GetPlayerInfo(0)
+func TestGetClientInfo(t *testing.T) {
+	_, err := srv.GetClientInfo(0)
 	if err != nil {
+		log.Println(err)
 		t.Fail()
 	}
 }
 
-func TestGetAllPlayerInfo(t *testing.T) {
-	psl1 := NewServer(testAddress, 5*time.Second)
-	_, err := psl1.GetAllPlayerInfo()
+func TestGetAllClientInfo(t *testing.T) {
+	_, err := srv.GetAllClientInfo()
 	if err != nil {
+		log.Println(err)
 		t.Fail()
 	}
 }
 
-func TestGetTeamsScores(t *testing.T) {
-	psl1 := NewServer(testAddress, 5*time.Second)
-	_, err := psl1.GetTeamsScores()
+func TestGetTeamScores(t *testing.T) {
+	_, err := srv.GetTeamScores()
 	if err != nil {
+		log.Println(err)
 		t.Fail()
 	}
 }

@@ -1,9 +1,6 @@
 package extinfo
 
-import (
-	"errors"
-	"net"
-)
+import "net"
 
 // ClientInfoRaw contains the raw information sent back from the server, i.e. state and privilege are ints.
 type ClientInfoRaw struct {
@@ -70,8 +67,9 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 	// response is multiple 64-byte responses, one for each client
 	// parse each 64 byte packet on its own and append to allClientInfo
 	clientInfoRaw := ClientInfoRaw{}
-	for i := 0; i < len(response); i += 64 {
-		clientInfoRaw, err = parseClientInfoResponse(response[i : i+64])
+	for i := 0; i < response.Len(); i += 64 {
+		partialResponse := response.buf[i : i+64]
+		clientInfoRaw, err = parseClientInfoResponse(&extinfoResponse{partialResponse, 0})
 		if err != nil {
 			return
 		}
@@ -87,97 +85,107 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 	return
 }
 
-// own function, because it is used in GetClientInfo() + GetAllClientInfo()
-func parseClientInfoResponse(response []byte) (clientInfoRaw ClientInfoRaw, err error) {
-	// throw away 4 first bytes (EXTENDED_INFO, EXTENDED_INFO_PLAYER_STATS, cn, EXTENDED_INFO_ACK)
-	response = response[4:]
-
-	positionInResponse = 0
-
-	// next three bytes are EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_CLIENT_INFO_RESPONSE_INFO
-
-	// check for correct extinfo protocol version
-	if dumpByte(response) != EXTENDED_INFO_VERSION {
-		err = errors.New("extinfo: wrong extinfo protocol version")
-		return
+// own function, because it is used in GetClientInfo() & GetAllClientInfo()
+func parseClientInfoResponse(response *extinfoResponse) (clientInfoRaw ClientInfoRaw, err error) {
+	// omit 7 first bytes: EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, CN, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_CLIENT_INFO_RESPONSE_INFO
+	for i := 0; i < 7; i++ {
+		_, err = response.ReadInt()
+		if err != nil {
+			return
+		}
 	}
 
-	if dumpByte(response) != EXTENDED_INFO_NO_ERROR {
-		err = errors.New("extinfo: invalid client number")
-		return
-	}
-
-	if dumpByte(response) != EXTENDED_INFO_CLIENT_INFO_RESPONSE_INFO {
-		err = errors.New("extinfo: illegal response type")
-		return
-	}
-
-	// set fields in raw client info
-
-	clientInfoRaw.ClientNum, err = dumpInt(response)
+	clientInfoRaw.ClientNum, err = response.ReadInt()
 	if err != nil {
 		return
 	}
 
-	clientInfoRaw.Ping, err = dumpInt(response)
+	clientInfoRaw.Ping, err = response.ReadInt()
 	if err != nil {
 		return
 	}
 
-	clientInfoRaw.Name, err = dumpString(response)
+	clientInfoRaw.Name, err = response.ReadString()
 	if err != nil {
 		return
 	}
 
-	clientInfoRaw.Team, err = dumpString(response)
+	clientInfoRaw.Team, err = response.ReadString()
 	if err != nil {
 		return
 	}
 
-	clientInfoRaw.Frags, err = dumpInt(response)
+	clientInfoRaw.Frags, err = response.ReadInt()
 	if err != nil {
 		return
 	}
-	clientInfoRaw.Flags, err = dumpInt(response)
+
+	clientInfoRaw.Flags, err = response.ReadInt()
 	if err != nil {
 		return
 	}
-	clientInfoRaw.Deaths, err = dumpInt(response)
+
+	clientInfoRaw.Deaths, err = response.ReadInt()
 	if err != nil {
 		return
 	}
-	clientInfoRaw.Teamkills, err = dumpInt(response)
+
+	clientInfoRaw.Teamkills, err = response.ReadInt()
 	if err != nil {
 		return
 	}
-	clientInfoRaw.Damage, err = dumpInt(response)
+
+	clientInfoRaw.Damage, err = response.ReadInt()
 	if err != nil {
 		return
 	}
-	clientInfoRaw.Health, err = dumpInt(response)
+
+	clientInfoRaw.Health, err = response.ReadInt()
 	if err != nil {
 		return
 	}
-	clientInfoRaw.Armour, err = dumpInt(response)
+
+	clientInfoRaw.Armour, err = response.ReadInt()
 	if err != nil {
 		return
 	}
-	clientInfoRaw.Weapon, err = dumpInt(response)
+
+	clientInfoRaw.Weapon, err = response.ReadInt()
 	if err != nil {
 		return
 	}
-	clientInfoRaw.Privilege, err = dumpInt(response)
+
+	clientInfoRaw.Privilege, err = response.ReadInt()
 	if err != nil {
 		return
 	}
-	clientInfoRaw.State, err = dumpInt(response)
+
+	clientInfoRaw.State, err = response.ReadInt()
 	if err != nil {
 		return
 	}
 
 	// IP from next 4 bytes
-	ipBytes := response[positionInResponse : positionInResponse+4]
-	clientInfoRaw.IP = net.IPv4(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3])
+	var ipByte1, ipByte2, ipByte3, ipByte4 byte
+
+	ipByte1, err = response.ReadByte()
+	if err != nil {
+		return
+	}
+
+	ipByte2, err = response.ReadByte()
+	if err != nil {
+		return
+	}
+
+	ipByte3, err = response.ReadByte()
+	if err != nil {
+		return
+	}
+
+	ipByte4 = 0
+
+	clientInfoRaw.IP = net.IPv4(ipByte1, ipByte2, ipByte3, ipByte4)
 
 	return
 }

@@ -23,27 +23,26 @@ type BasicInfo struct {
 
 // GetBasicInfoRaw queries a Sauerbraten server at addr on port and returns the raw response or an error in case something went wrong. Raw response means that the int values sent as game mode and master mode are NOT translated into the human readable name.
 func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
-	response, err := s.queryServer(buildRequest(BASIC_INFO, 0, 0))
-	if err != nil {
-		return basicInfoRaw, err
-	}
-
-	positionInResponse = 0
-
-	// first int is BASIC_INFO
-	_, err = dumpInt(response)
+	var response *extinfoResponse
+	response, err = s.queryServer(buildRequest(BASIC_INFO, 0, 0))
 	if err != nil {
 		return
 	}
 
-	basicInfoRaw.NumberOfClients, err = dumpInt(response)
+	// first int is pong
+	_, err = response.ReadInt()
+	if err != nil {
+		return
+	}
+
+	basicInfoRaw.NumberOfClients, err = response.ReadInt()
 	if err != nil {
 		return
 	}
 
 	// next int is always 5 or 7, the number of additional attributes after the playercount and before the strings for map and description
 	sevenAttributes := false
-	numberOfAttributes, err := dumpInt(response)
+	numberOfAttributes, err := response.ReadInt()
 	if err != nil {
 		return
 	}
@@ -52,34 +51,34 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 		sevenAttributes = true
 	}
 
-	basicInfoRaw.ProtocolVersion, err = dumpInt(response)
+	basicInfoRaw.ProtocolVersion, err = response.ReadInt()
 	if err != nil {
 		return
 	}
 
-	basicInfoRaw.GameMode, err = dumpInt(response)
+	basicInfoRaw.GameMode, err = response.ReadInt()
 	if err != nil {
 		return
 	}
 
-	basicInfoRaw.SecsLeft, err = dumpInt(response)
+	basicInfoRaw.SecsLeft, err = response.ReadInt()
 	if err != nil {
 		return
 	}
 
-	basicInfoRaw.MaxNumberOfClients, err = dumpInt(response)
+	basicInfoRaw.MaxNumberOfClients, err = response.ReadInt()
 	if err != nil {
 		return
 	}
 
-	basicInfoRaw.MasterMode, err = dumpInt(response)
+	basicInfoRaw.MasterMode, err = response.ReadInt()
 	if err != nil {
 		return
 	}
 
 	if sevenAttributes {
 		var isPausedValue int
-		isPausedValue, err = dumpInt(response)
+		isPausedValue, err = response.ReadInt()
 		if err != nil {
 			return
 		}
@@ -88,7 +87,7 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 			basicInfoRaw.Paused = true
 		}
 
-		basicInfoRaw.GameSpeed, err = dumpInt(response)
+		basicInfoRaw.GameSpeed, err = response.ReadInt()
 		if err != nil {
 			return
 		}
@@ -96,12 +95,12 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 		basicInfoRaw.GameSpeed = 100
 	}
 
-	basicInfoRaw.Map, err = dumpString(response)
+	basicInfoRaw.Map, err = response.ReadString()
 	if err != nil {
 		return
 	}
 
-	basicInfoRaw.Description, err = dumpString(response)
+	basicInfoRaw.Description, err = response.ReadString()
 
 	return
 }

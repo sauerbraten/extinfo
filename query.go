@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -29,12 +30,13 @@ func buildRequest(infoType int, extendedInfoType int, clientNum int) []byte {
 	return request
 }
 
-// queries the given server and returns the raw response as []byte and an error in case something went wrong. clientNum is optional, put 0 if not needed.
-func (s *Server) queryServer(request []byte) ([]byte, error) {
+// queries the given server and returns the response and an error in case something went wrong. clientNum is optional, put 0 if not needed.
+func (s *Server) queryServer(request []byte) (response *extinfoResponse, err error) {
 	// connect to server at port+1 (port is the port you connect to in game, sauerbraten listens on the one higher port for BasicInfo queries
-	conn, err := net.DialUDP("udp", nil, s.addr)
+	var conn *net.UDPConn
+	conn, err = net.DialUDP("udp", nil, s.addr)
 	if err != nil {
-		return []byte{}, err
+		return
 	}
 	defer conn.Close()
 
@@ -44,63 +46,107 @@ func (s *Server) queryServer(request []byte) ([]byte, error) {
 	// send the request to server
 	_, err = conn.Write(request)
 	if err != nil {
-		return []byte{}, err
+		return
 	}
 
 	// receive response from server with 5 second timeout
-	response := make([]byte, 64)
+	rawResponse := make([]byte, 64)
 	var bytesRead int
 	conn.SetReadDeadline(time.Now().Add(s.timeOut))
-	bytesRead, err = bufconn.Read(response)
+	bytesRead, err = bufconn.Read(rawResponse)
 	if err != nil {
-		return []byte{}, err
+		return
 	}
 
 	// trim response to what's actually from the server
-	response = response[:bytesRead]
+	rawResponse = rawResponse[:bytesRead]
 
-	if bytesRead < 2 {
-		return []byte{}, errors.New("extinfo: invalid response")
+	if bytesRead < 5 {
+		err = errors.New("extinfo: invalid response: too short")
+		return
+	}
+
+	// do some basic checks on the response
+
+	infoType := rawResponse[0]
+	command := rawResponse[1] // only valid if infoType == EXTENDED_INFO
+
+	if infoType == EXTENDED_INFO {
+		var version, commandError byte
+
+		if command == EXTENDED_INFO_CLIENT_INFO {
+			version = rawResponse[4]
+			commandError = rawResponse[5]
+		} else {
+			version = rawResponse[3]
+			commandError = rawResponse[4]
+		}
+
+		if infoType != request[0] || command != request[1] {
+			err = errors.New("extinfo: invalid response: response does not match request")
+			return
+		}
+
+		if version != EXTENDED_INFO_VERSION {
+			err = errors.New("extinfo: wrong version: expected " + strconv.Itoa(EXTENDED_INFO_VERSION) + ", got " + strconv.Itoa(int(version)))
+			return
+		}
+
+		if commandError == EXTENDED_INFO_ERROR {
+			switch command {
+			case EXTENDED_INFO_CLIENT_INFO:
+				err = errors.New("extinfo: no client with cn " + strconv.Itoa(int(request[2])))
+			case EXTENDED_INFO_TEAMS_SCORES:
+				err = errors.New("extinfo: server is not running a team mode")
+			}
+			return
+		}
 	}
 
 	// if not a response to EXTENDED_INFO_CLIENT_INFO, we are done
-	if response[0] != EXTENDED_INFO || (response[0] == EXTENDED_INFO && response[1] != EXTENDED_INFO_CLIENT_INFO) {
-		return response, nil
+	if infoType != EXTENDED_INFO || command != EXTENDED_INFO_CLIENT_INFO {
+		offset := 0
+
+		if infoType == EXTENDED_INFO {
+			switch command {
+			case EXTENDED_INFO_UPTIME:
+				offset = 4
+			case EXTENDED_INFO_TEAMS_SCORES:
+				offset = 5
+			}
+		}
+
+		response = &extinfoResponse{rawResponse, offset}
+		return
 	}
 
 	// handle response to EXTENDED_INFO_CLIENT_INFO
 
 	// some server mods silently fail to implement responses → fail gracefully
-	if len(response) < 7 {
-		return []byte{}, errors.New("extinfo: invalid response")
+	if len(rawResponse) < 7 || rawResponse[6] != EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS {
+		err = errors.New("extinfo: invalid response")
+		return
 	}
 
-	if response[5] == EXTENDED_INFO_ERROR {
-		return []byte{}, errors.New("extinfo: invalid cn")
-	}
-
-	if response[6] != EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS {
-		return []byte{}, errors.New("extinfo: invalid response")
-	}
-
-	// get CNs out of the reponse, ignore 7 first bytes, which are:
+	// get CNs out of the reponse, ignore 7 first bytes, which were:
 	// EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, CN from request, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS
-	clientNums := response[7:]
+	clientNums := rawResponse[7:]
 
-	// for each client, receive a packet and append it to the response
-	clientInfos := make([]byte, 0)
+	// for each client, receive a packet and append it to a new slice
+	clientInfos := make([]byte, 0, 64*len(clientNums))
 	for _ = range clientNums {
 		// read from connection
 		clientInfo := make([]byte, 64)
 		conn.SetReadDeadline(time.Now().Add(s.timeOut))
 		_, err = bufconn.Read(clientInfo)
 		if err != nil {
-			return clientInfos, err
+			return
 		}
 
-		// append to slice
+		// append bytes to slice
 		clientInfos = append(clientInfos, clientInfo...)
 	}
 
-	return clientInfos, nil
+	response = &extinfoResponse{clientInfos, 0}
+	return
 }
