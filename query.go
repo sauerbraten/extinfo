@@ -75,6 +75,10 @@ func (s *Server) queryServer(request []byte) (response *extinfoResponse, err err
 		var version, commandError byte
 
 		if command == EXTENDED_INFO_CLIENT_INFO {
+			if bytesRead < 6 {
+				err = errors.New("extinfo: invalid response: too short")
+				return
+			}
 			version = rawResponse[4]
 			commandError = rawResponse[5]
 		} else {
@@ -132,9 +136,11 @@ func (s *Server) queryServer(request []byte) (response *extinfoResponse, err err
 	// EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, CN from request, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS
 	clientNums := rawResponse[7:]
 
+	numberOfClients := countClientNums(clientNums)
+
 	// for each client, receive a packet and append it to a new slice
-	clientInfos := make([]byte, 0, 64*len(clientNums))
-	for _ = range clientNums {
+	clientInfos := make([]byte, 0, 64*numberOfClients)
+	for i := 0; i < numberOfClients; i++ {
 		// read from connection
 		clientInfo := make([]byte, 64)
 		conn.SetReadDeadline(time.Now().Add(s.timeOut))
@@ -149,4 +155,18 @@ func (s *Server) queryServer(request []byte) (response *extinfoResponse, err err
 
 	response = &extinfoResponse{clientInfos, 0}
 	return
+}
+
+func countClientNums(buf []byte) (count int) {
+	er := extinfoResponse{
+		buf:      buf,
+		posInBuf: 0,
+	}
+
+	for er.HasRemaining() {
+		er.ReadInt()
+		count++
+	}
+
+	return count
 }
