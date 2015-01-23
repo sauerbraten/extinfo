@@ -1,6 +1,10 @@
 package extinfo
 
-import "net"
+import (
+	"net"
+
+	"github.com/sauerbraten/cubecode"
+)
 
 // ClientInfoRaw contains the raw information sent back from the server, i.e. state and privilege are ints.
 type ClientInfoRaw struct {
@@ -68,8 +72,8 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 	// parse each 64 byte packet on its own and append to allClientInfo
 	clientInfoRaw := ClientInfoRaw{}
 	for i := 0; i < response.Len(); i += 64 {
-		partialResponse := response.buf[i : i+64]
-		clientInfoRaw, err = parseClientInfoResponse(&extinfoResponse{partialResponse, 0})
+		partialResponse := response.SubPacket(i, i+64)
+		clientInfoRaw, err = parseClientInfoResponse(partialResponse)
 		if err != nil {
 			return
 		}
@@ -86,7 +90,7 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 }
 
 // own function, because it is used in GetClientInfo() & GetAllClientInfo()
-func parseClientInfoResponse(response *extinfoResponse) (clientInfoRaw ClientInfoRaw, err error) {
+func parseClientInfoResponse(response *cubecode.Packet) (clientInfoRaw ClientInfoRaw, err error) {
 	// omit 7 first bytes: EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, CN, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_CLIENT_INFO_RESPONSE_INFO
 	for i := 0; i < 7; i++ {
 		_, err = response.ReadInt()

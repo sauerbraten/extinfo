@@ -6,6 +6,8 @@ import (
 	"net"
 	"strconv"
 	"time"
+
+	"github.com/sauerbraten/cubecode"
 )
 
 // builds a request
@@ -31,7 +33,7 @@ func buildRequest(infoType int, extendedInfoType int, clientNum int) []byte {
 }
 
 // queries the given server and returns the response and an error in case something went wrong. clientNum is optional, put 0 if not needed.
-func (s *Server) queryServer(request []byte) (response *extinfoResponse, err error) {
+func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err error) {
 	// connect to server at port+1 (port is the port you connect to in game, sauerbraten listens on the one higher port for BasicInfo queries
 	var conn *net.UDPConn
 	conn, err = net.DialUDP("udp", nil, s.addr)
@@ -120,7 +122,7 @@ func (s *Server) queryServer(request []byte) (response *extinfoResponse, err err
 			}
 		}
 
-		response = &extinfoResponse{rawResponse, offset}
+		response = cubecode.NewPacket(rawResponse[offset:])
 		return
 	}
 
@@ -136,7 +138,10 @@ func (s *Server) queryServer(request []byte) (response *extinfoResponse, err err
 	// EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, CN from request, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS
 	clientNums := rawResponse[7:]
 
-	numberOfClients := countClientNums(clientNums)
+	numberOfClients, err := countClientNums(clientNums)
+	if err != nil {
+		return
+	}
 
 	// for each client, receive a packet and append it to a new slice
 	clientInfos := make([]byte, 0, 64*numberOfClients)
@@ -153,20 +158,21 @@ func (s *Server) queryServer(request []byte) (response *extinfoResponse, err err
 		clientInfos = append(clientInfos, clientInfo...)
 	}
 
-	response = &extinfoResponse{clientInfos, 0}
+	response = cubecode.NewPacket(clientInfos)
 	return
 }
 
-func countClientNums(buf []byte) (count int) {
-	er := extinfoResponse{
-		buf:      buf,
-		posInBuf: 0,
-	}
+func countClientNums(buf []byte) (count int, err error) {
+	p := cubecode.NewPacket(buf)
 
-	for er.HasRemaining() {
-		er.ReadInt()
+	for p.HasRemaining() {
+		_, err = p.ReadInt()
+		if err != nil {
+			return
+		}
+
 		count++
 	}
 
-	return count
+	return
 }

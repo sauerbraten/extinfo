@@ -10,7 +10,7 @@ var srv *Server
 
 func init() {
 	var err error
-	srv, err = NewServer("144.76.176.131", 28785, 5*time.Second)
+	srv, err = NewServer("localhost", 28785, 5*time.Second)
 	if err != nil {
 		panic(err)
 	}
