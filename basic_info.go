@@ -119,6 +119,7 @@ func (s *Server) GetBasicInfo() (BasicInfo, error) {
 	basicInfo.BasicInfoRaw = basicInfoRaw
 	basicInfo.GameMode = getGameModeName(basicInfo.BasicInfoRaw.GameMode)
 	basicInfo.MasterMode = getMasterModeName(basicInfo.BasicInfoRaw.MasterMode)
-
+	basicInfo.Map = cubecode.SanitizeString(basicInfo.Map)
+	basicInfo.Description = cubecode.SanitizeString(basicInfo.Description)
 	return basicInfo, nil
 }

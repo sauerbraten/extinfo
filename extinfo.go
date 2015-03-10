@@ -27,6 +27,8 @@ const (
 	EXTENDED_INFO_CLIENT_INFO_RESPONSE_INFO = 0xF5 //-11
 )
 
+const MAX_PLAYER_CN = 127
+
 // A server to query extinfo from.
 type Server struct {
 	addr    *net.UDPAddr
