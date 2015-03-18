@@ -52,7 +52,7 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 	}
 
 	// receive response from server with 5 second timeout
-	rawResponse := make([]byte, 64)
+	rawResponse := make([]byte, MAX_PACKET_SIZE)
 	var bytesRead int
 	conn.SetReadDeadline(time.Now().Add(s.timeOut))
 	bytesRead, err = bufconn.Read(rawResponse)
@@ -93,6 +93,7 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 			return
 		}
 
+		// this package only support extinfo protocol version 105
 		if version != EXTENDED_INFO_VERSION {
 			err = errors.New("extinfo: wrong version: expected " + strconv.Itoa(EXTENDED_INFO_VERSION) + ", got " + strconv.Itoa(int(version)))
 			return
@@ -144,10 +145,10 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 	}
 
 	// for each client, receive a packet and append it to a new slice
-	clientInfos := make([]byte, 0, 64*numberOfClients)
+	clientInfos := make([]byte, 0, MAX_PACKET_SIZE*numberOfClients)
 	for i := 0; i < numberOfClients; i++ {
 		// read from connection
-		clientInfo := make([]byte, 64)
+		clientInfo := make([]byte, MAX_PACKET_SIZE)
 		conn.SetReadDeadline(time.Now().Add(s.timeOut))
 		_, err = bufconn.Read(clientInfo)
 		if err != nil {

@@ -1,6 +1,7 @@
 package extinfo
 
 import (
+	"errors"
 	"net"
 
 	"github.com/sauerbraten/cubecode"
@@ -72,7 +73,12 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 	// parse each 64 byte packet on its own and append to allClientInfo
 	clientInfoRaw := ClientInfoRaw{}
 	for i := 0; i < response.Len(); i += 64 {
-		partialResponse := response.SubPacket(i, i+64)
+		var partialResponse *cubecode.Packet
+		partialResponse, err = response.SubPacket(i, i+64)
+		if err != nil {
+			return
+		}
+
 		clientInfoRaw, err = parseClientInfoResponse(partialResponse)
 		if err != nil {
 			return
@@ -95,77 +101,92 @@ func parseClientInfoResponse(response *cubecode.Packet) (clientInfoRaw ClientInf
 	for i := 0; i < 7; i++ {
 		_, err = response.ReadInt()
 		if err != nil {
+			err = errors.New("extinfo: error skipping response header: " + err.Error())
 			return
 		}
 	}
 
 	clientInfoRaw.ClientNum, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading client number: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Ping, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading ping: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Name, err = response.ReadString()
 	if err != nil {
+		err = errors.New("extinfo: error reading name: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Team, err = response.ReadString()
 	if err != nil {
+		err = errors.New("extinfo: error reading team: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Frags, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading frags: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Flags, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading flags: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Deaths, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading deaths: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Teamkills, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading teamkills: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Accuracy, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading accuracy: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Health, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading health: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Armour, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading armour: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Weapon, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading weapon: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Privilege, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading privilege: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.State, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading state: " + err.Error())
 		return
 	}
 
@@ -174,20 +195,23 @@ func parseClientInfoResponse(response *cubecode.Packet) (clientInfoRaw ClientInf
 
 	ipByte1, err = response.ReadByte()
 	if err != nil {
+		err = errors.New("extinfo: error reading first IP byte: " + err.Error())
 		return
 	}
 
 	ipByte2, err = response.ReadByte()
 	if err != nil {
+		err = errors.New("extinfo: error reading second IP byte: " + err.Error())
 		return
 	}
 
 	ipByte3, err = response.ReadByte()
 	if err != nil {
+		err = errors.New("extinfo: error reading third IP byte: " + err.Error())
 		return
 	}
 
-	ipByte4 = 0
+	ipByte4 = 0 // sauer never sends 4th IP byte for privacy reasons
 
 	clientInfoRaw.IP = net.IPv4(ipByte1, ipByte2, ipByte3, ipByte4)
 

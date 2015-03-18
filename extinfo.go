@@ -27,7 +27,11 @@ const (
 	EXTENDED_INFO_CLIENT_INFO_RESPONSE_INFO = 0xF5 //-11
 )
 
-const MAX_PLAYER_CN = 127
+// Constants useful in this package
+const (
+	MAX_PLAYER_CN   = 127
+	MAX_PACKET_SIZE = 256 // CN listings with lots of bots can get really long
+)
 
 // A server to query extinfo from.
 type Server struct {
