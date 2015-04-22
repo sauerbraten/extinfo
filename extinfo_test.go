@@ -33,7 +33,7 @@ func TestGetUptime(t *testing.T) {
 }
 
 func TestGetClientInfo(t *testing.T) {
-	_, err := srv.GetClientInfo(0)
+	_, err := srv.GetClientInfo(10)
 	if err != nil {
 		log.Println(err)
 		t.Fail()

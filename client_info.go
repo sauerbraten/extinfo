@@ -120,7 +120,7 @@ func parseClientInfoResponse(response *cubecode.Packet) (clientInfoRaw ClientInf
 
 	clientInfoRaw.Name, err = response.ReadString()
 	if err != nil {
-		err = errors.New("extinfo: error reading name: " + err.Error())
+		err = errors.New("extinfo: error reading client name: " + err.Error())
 		return
 	}
 
@@ -174,19 +174,19 @@ func parseClientInfoResponse(response *cubecode.Packet) (clientInfoRaw ClientInf
 
 	clientInfoRaw.Weapon, err = response.ReadInt()
 	if err != nil {
-		err = errors.New("extinfo: error reading weapon: " + err.Error())
+		err = errors.New("extinfo: error reading weapon in use: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.Privilege, err = response.ReadInt()
 	if err != nil {
-		err = errors.New("extinfo: error reading privilege: " + err.Error())
+		err = errors.New("extinfo: error reading client privilege: " + err.Error())
 		return
 	}
 
 	clientInfoRaw.State, err = response.ReadInt()
 	if err != nil {
-		err = errors.New("extinfo: error reading state: " + err.Error())
+		err = errors.New("extinfo: error reading client state: " + err.Error())
 		return
 	}
 

@@ -1,6 +1,10 @@
 package extinfo
 
-import "github.com/sauerbraten/cubecode"
+import (
+	"errors"
+
+	"github.com/sauerbraten/cubecode"
+)
 
 // BasicInfoRaw contains the information sent back from the server in their raw form, i.e. no translation from ints to strings, even if possible.
 type BasicInfoRaw struct {
@@ -34,11 +38,13 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 	// first int is pong
 	_, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading pong value: " + err.Error())
 		return
 	}
 
 	basicInfoRaw.NumberOfClients, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading number of connected clients: " + err.Error())
 		return
 	}
 
@@ -46,6 +52,7 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 	sevenAttributes := false
 	numberOfAttributes, err := response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading number of following values: " + err.Error())
 		return
 	}
 
@@ -55,26 +62,31 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 
 	basicInfoRaw.ProtocolVersion, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading protocol version: " + err.Error())
 		return
 	}
 
 	basicInfoRaw.GameMode, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading game mode: " + err.Error())
 		return
 	}
 
 	basicInfoRaw.SecsLeft, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading time left: " + err.Error())
 		return
 	}
 
 	basicInfoRaw.MaxNumberOfClients, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading maximum number of clients: " + err.Error())
 		return
 	}
 
 	basicInfoRaw.MasterMode, err = response.ReadInt()
 	if err != nil {
+		err = errors.New("extinfo: error reading master mode: " + err.Error())
 		return
 	}
 
@@ -82,6 +94,7 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 		var isPausedValue int
 		isPausedValue, err = response.ReadInt()
 		if err != nil {
+			err = errors.New("extinfo: error reading paused value: " + err.Error())
 			return
 		}
 
@@ -91,6 +104,7 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 
 		basicInfoRaw.GameSpeed, err = response.ReadInt()
 		if err != nil {
+			err = errors.New("extinfo: error reading game speed: " + err.Error())
 			return
 		}
 	} else {
@@ -99,10 +113,15 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 
 	basicInfoRaw.Map, err = response.ReadString()
 	if err != nil {
+		err = errors.New("extinfo: error reading map name: " + err.Error())
 		return
 	}
 
 	basicInfoRaw.Description, err = response.ReadString()
+	if err != nil {
+		err = errors.New("extinfo: error reading server description: " + err.Error())
+		return
+	}
 
 	return
 }
