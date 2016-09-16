@@ -2,22 +2,22 @@ package extinfo
 
 // TeamScore contains the name of the team and the score, i.e. flags scored in flag modes / points gained for holding bases in capture modes / frags achieved in DM modes / skulls collected
 type TeamScore struct {
-	Name  string // name of the team, e.g. "good"
-	Score int    // flags in ctf modes, frags in deathmatch modes, points in capture, skulls in collect
-	Bases []int  // the numbers/IDs of the bases the team possesses (only used in capture modes)
+	Name  string `json:"name"`  // name of the team, e.g. "good"
+	Score int    `json:"score"` // flags in ctf modes, frags in deathmatch modes, points in capture, skulls in collect
+	Bases []int  `json:"bases"` // the numbers/IDs of the bases the team possesses (only used in capture modes)
 }
 
 // TeamScoresRaw contains the game mode as raw int, the seconds left in the game, and a slice of TeamScores
 type TeamScoresRaw struct {
-	GameMode int                  // current game mode
-	SecsLeft int                  // the time left until intermission in seconds
-	Scores   map[string]TeamScore // a team score for each team, mapped to the team's name
+	GameMode int                  `json:"gameMode"` // current game mode
+	SecsLeft int                  `json:"secsLeft"` // the time left until intermission in seconds
+	Scores   map[string]TeamScore `json:"scores"`   // a team score for each team, mapped to the team's name
 }
 
 // TeamScores contains the game mode as human readable string, the seconds left in the game, and a slice of TeamScores
 type TeamScores struct {
 	TeamScoresRaw
-	GameMode string // current game mode
+	GameMode string `json:"gameMode"` // current game mode
 }
 
 // GetTeamScoresRaw queries a Sauerbraten server at addr on port for the teams' names and scores and returns the raw response and/or an error in case something went wrong or the server is not running a team mode.

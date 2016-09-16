@@ -9,29 +9,29 @@ import (
 
 // ClientInfoRaw contains the raw information sent back from the server, i.e. state and privilege are ints.
 type ClientInfoRaw struct {
-	ClientNum int    // client number or cn
-	Ping      int    // client's ping to server
-	Name      string //
-	Team      string // name of the team the client is on, e.g. "good"
-	Frags     int    // kills
-	Flags     int    // number of flags the player scored
-	Deaths    int    //
-	Teamkills int    //
-	Accuracy  int    // damage the client could have dealt * 100 / damage actually dealt by the client
-	Health    int    // remaining HP (health points)
-	Armour    int    // remaining armour
-	Weapon    int    // weapon the client currently has selected
-	Privilege int    // 0 ("none"), 1 ("master") or 2 ("admin")
-	State     int    // client state, e.g. 1 ("alive") or 5 ("spectator"), see names.go for int -> string mapping
-	IP        net.IP // client IP (only the first 3 bytes)
+	ClientNum int    `json:"clientNum"` // client number or cn
+	Ping      int    `json:"ping"`      // client's ping to server
+	Name      string `json:"name"`      //
+	Team      string `json:"team"`      // name of the team the client is on, e.g. "good"
+	Frags     int    `json:"frags"`     // kills
+	Flags     int    `json:"flags"`     // number of flags the player scored
+	Deaths    int    `json:"deaths"`    //
+	Teamkills int    `json:"teamkills"` //
+	Accuracy  int    `json:"accuracy"`  // damage the client could have dealt * 100 / damage actually dealt by the client
+	Health    int    `json:"health"`    // remaining HP (health points)
+	Armour    int    `json:"armour"`    // remaining armour
+	Weapon    int    `json:"weapon"`    // weapon the client currently has selected
+	Privilege int    `json:"privilege"` // 0 ("none"), 1 ("master") or 2 ("admin")
+	State     int    `json:"state"`     // client state, e.g. 1 ("alive") or 5 ("spectator"), see names.go for int -> string mapping
+	IP        net.IP `json:"ip"`        // client IP (only the first 3 bytes)
 }
 
 // ClientInfo contains the parsed information sent back from the server, i.e. weapon, state and privilege are translated into human readable strings.
 type ClientInfo struct {
 	ClientInfoRaw
-	Weapon    string // weapon the client currently has selected
-	Privilege string // "none", "master" or "admin"
-	State     string // client state, e.g. "dead" or "spectator"
+	Weapon    string `json:"weapon"`    // weapon the client currently has selected
+	Privilege string `json:"privilege"` // "none", "master" or "admin"
+	State     string `json:"state"`     // client state, e.g. "dead" or "spectator"
 }
 
 // GetClientInfoRaw returns the raw information about the client with the given clientNum.
