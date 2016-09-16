@@ -69,12 +69,12 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 		return allClientInfo, err
 	}
 
-	// response is multiple 64-byte responses, one for each client
-	// parse each 64 byte packet on its own and append to allClientInfo
+	// response is multiple packets, one for each client
+	// parse each packet on its own and append to allClientInfo
 	clientInfoRaw := ClientInfoRaw{}
-	for i := 0; i < response.Len(); i += 64 {
+	for i := 0; i < response.Len(); i += MAX_PACKET_SIZE {
 		var partialResponse *cubecode.Packet
-		partialResponse, err = response.SubPacket(i, i+64)
+		partialResponse, err = response.SubPacket(i, i+MAX_PACKET_SIZE)
 		if err != nil {
 			return
 		}
