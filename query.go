@@ -11,12 +11,12 @@ import (
 )
 
 // builds a request
-func buildRequest(infoType int, extendedInfoType int, clientNum int) []byte {
+func buildRequest(infoType byte, extendedInfoType byte, clientNum int) []byte {
 	request := []byte{}
 
 	// extended info request
 	if infoType == EXTENDED_INFO {
-		request = append(request, byte(infoType), byte(extendedInfoType))
+		request = append(request, infoType, extendedInfoType)
 
 		// client stats has to include the clientNum (-1 for all)
 		if extendedInfoType == EXTENDED_INFO_CLIENT_INFO {
@@ -61,7 +61,7 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 	}
 
 	// trim response to what's actually from the server
-	rawResponse = rawResponse[:bytesRead]
+	packet := cubecode.NewPacket(rawResponse[:bytesRead])
 
 	if bytesRead < 5 {
 		err = errors.New("extinfo: invalid response: too short")
@@ -70,8 +70,14 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 
 	// do some basic checks on the response
 
-	infoType := rawResponse[0]
-	command := rawResponse[1] // only valid if infoType == EXTENDED_INFO
+	infoType, err := packet.ReadByte()
+	if err != nil {
+		return
+	}
+	command, err := packet.ReadByte() // only valid if infoType == EXTENDED_INFO
+	if err != nil {
+		return
+	}
 
 	if infoType == EXTENDED_INFO {
 		var version, commandError byte
@@ -95,7 +101,7 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 
 		// this package only support extinfo protocol version 105
 		if version != EXTENDED_INFO_VERSION {
-			err = errors.New("extinfo: wrong version: expected " + strconv.Itoa(EXTENDED_INFO_VERSION) + ", got " + strconv.Itoa(int(version)))
+			err = errors.New("extinfo: wrong version: expected " + strconv.Itoa(int(EXTENDED_INFO_VERSION)) + ", got " + strconv.Itoa(int(version)))
 			return
 		}
 

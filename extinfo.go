@@ -10,21 +10,21 @@ import (
 // Protocol constants
 const (
 	// Constants describing the type of information to query for
-	EXTENDED_INFO = 0x00 //0
-	BASIC_INFO    = 0x01 //1
+	EXTENDED_INFO byte = 0x00 //0
+	BASIC_INFO    byte = 0x01 //1
 
-	EXTENDED_INFO_ACK      = 0xFF // -1
-	EXTENDED_INFO_VERSION  = 105
-	EXTENDED_INFO_ERROR    = 0x01 //1
-	EXTENDED_INFO_NO_ERROR = 0x00 //0
+	EXTENDED_INFO_ACK      byte = 0xFF // -1
+	EXTENDED_INFO_VERSION  byte = 105
+	EXTENDED_INFO_ERROR    byte = 0x01 //1
+	EXTENDED_INFO_NO_ERROR byte = 0x00 //0
 
 	// Constants describing the type of extended information to query for
-	EXTENDED_INFO_UPTIME       = 0x00 //0
-	EXTENDED_INFO_CLIENT_INFO  = 0x01 //1
-	EXTENDED_INFO_TEAMS_SCORES = 0x02 //2
+	EXTENDED_INFO_UPTIME       byte = 0x00 //0
+	EXTENDED_INFO_CLIENT_INFO  byte = 0x01 //1
+	EXTENDED_INFO_TEAMS_SCORES byte = 0x02 //2
 
-	EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS  = 0xF6 //-10
-	EXTENDED_INFO_CLIENT_INFO_RESPONSE_INFO = 0xF5 //-11
+	EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS  byte = 0xF6 //-10
+	EXTENDED_INFO_CLIENT_INFO_RESPONSE_INFO byte = 0xF5 //-11
 )
 
 // Constants useful in this package
