@@ -22,7 +22,7 @@ type TeamScores struct {
 
 // GetTeamScoresRaw queries a Sauerbraten server at addr on port for the teams' names and scores and returns the raw response and/or an error in case something went wrong or the server is not running a team mode.
 func (s *Server) GetTeamScoresRaw() (teamScoresRaw TeamScoresRaw, err error) {
-	request := buildRequest(EXTENDED_INFO, EXTENDED_INFO_TEAMS_SCORES, 0)
+	request := buildRequest(InfoTypeExtended, ExtInfoTypeTeamScores, 0)
 	response, err := s.queryServer(request)
 	if err != nil {
 		return

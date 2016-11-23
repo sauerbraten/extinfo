@@ -10,46 +10,45 @@ import (
 // Protocol constants
 const (
 	// Constants describing the type of information to query for
-	EXTENDED_INFO byte = 0x00 //0
-	BASIC_INFO    byte = 0x01 //1
+	InfoTypeExtended byte = 0x00
+	InfoTypeBasic    byte = 0x01
 
-	EXTENDED_INFO_ACK      byte = 0xFF // -1
-	EXTENDED_INFO_VERSION  byte = 105
-	EXTENDED_INFO_ERROR    byte = 0x01 //1
-	EXTENDED_INFO_NO_ERROR byte = 0x00 //0
+	// Constants used in responses to extended info queries
+	ExtInfoACK     byte = 0xFF // -1
+	ExtInfoVersion byte = 105
+	ExtInfoError   byte = 0x01
 
 	// Constants describing the type of extended information to query for
-	EXTENDED_INFO_UPTIME       byte = 0x00 //0
-	EXTENDED_INFO_CLIENT_INFO  byte = 0x01 //1
-	EXTENDED_INFO_TEAMS_SCORES byte = 0x02 //2
+	ExtInfoTypeUptime     byte = 0x00
+	ExtInfoTypeClientInfo byte = 0x01
+	ExtInfoTypeTeamScores byte = 0x02
 
-	EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS  byte = 0xF6 //-10
-	EXTENDED_INFO_CLIENT_INFO_RESPONSE_INFO byte = 0xF5 //-11
+	// Constants used in responses to client info queries
+	ClientInfoResponseTypeCNs  byte = 0xF6 // -10
+	ClientInfoResponseTypeInfo byte = 0xF5 // -11
 )
 
-// Constants useful in this package
+// Constants generally useful in this package
 const (
-	MAX_PLAYER_CN   = 127
-	MAX_PACKET_SIZE = 256 // CN listings with lots of bots can get really long
+	MaxPlayerCN     = 127 // Highest CN an actual player can have; bots' CNs start at 128
+	MaxPacketLength = 512 // better to be safe
 )
 
-// A server to query extinfo from.
+// Server represents a Sauerbraten game server.
 type Server struct {
 	addr    *net.UDPAddr
 	timeOut time.Duration
 }
 
-func NewServer(host string, port int, timeOut time.Duration) (s *Server, err error) {
-	var addr *net.UDPAddr
-	addr, err = net.ResolveUDPAddr("udp", host+":"+strconv.Itoa(port+1))
+// NewServer returns a Server to query information from.
+func NewServer(host string, port int, timeOut time.Duration) (*Server, error) {
+	addr, err := net.ResolveUDPAddr("udp", host+":"+strconv.Itoa(port+1))
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	s = &Server{
+	return &Server{
 		addr:    addr,
 		timeOut: timeOut,
-	}
-
-	return
+	}, nil
 }

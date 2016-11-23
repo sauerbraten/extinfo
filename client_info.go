@@ -36,7 +36,7 @@ type ClientInfo struct {
 
 // GetClientInfoRaw returns the raw information about the client with the given clientNum.
 func (s *Server) GetClientInfoRaw(clientNum int) (clientInfoRaw ClientInfoRaw, err error) {
-	response, err := s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, clientNum))
+	response, err := s.queryServer(buildRequest(InfoTypeExtended, ExtInfoTypeClientInfo, clientNum))
 	if err != nil {
 		return
 	}
@@ -64,7 +64,7 @@ func (s *Server) GetClientInfo(clientNum int) (clientInfo ClientInfo, err error)
 func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error) {
 	allClientInfo = map[int]ClientInfo{}
 
-	response, err := s.queryServer(buildRequest(EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, -1))
+	response, err := s.queryServer(buildRequest(InfoTypeExtended, ExtInfoTypeClientInfo, -1))
 	if err != nil {
 		return allClientInfo, err
 	}
@@ -72,9 +72,9 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 	// response is multiple packets, one for each client
 	// parse each packet on its own and append to allClientInfo
 	clientInfoRaw := ClientInfoRaw{}
-	for i := 0; i < response.Len(); i += MAX_PACKET_SIZE {
+	for i := 0; i < response.Len(); i += MaxPacketLength {
 		var partialResponse *cubecode.Packet
-		partialResponse, err = response.SubPacket(i, i+MAX_PACKET_SIZE)
+		partialResponse, err = response.SubPacket(i, i+MaxPacketLength)
 		if err != nil {
 			return
 		}

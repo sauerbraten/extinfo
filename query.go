@@ -15,17 +15,17 @@ func buildRequest(infoType byte, extendedInfoType byte, clientNum int) []byte {
 	request := []byte{}
 
 	// extended info request
-	if infoType == EXTENDED_INFO {
+	if infoType == InfoTypeExtended {
 		request = append(request, infoType, extendedInfoType)
 
 		// client stats has to include the clientNum (-1 for all)
-		if extendedInfoType == EXTENDED_INFO_CLIENT_INFO {
+		if extendedInfoType == ExtInfoTypeClientInfo {
 			request = append(request, byte(clientNum))
 		}
 	}
 
 	// basic info request
-	if infoType == BASIC_INFO {
+	if infoType == InfoTypeBasic {
 		request = append(request, byte(infoType))
 	}
 
@@ -52,7 +52,7 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 	}
 
 	// receive response from server with 5 second timeout
-	rawResponse := make([]byte, MAX_PACKET_SIZE)
+	rawResponse := make([]byte, MaxPacketLength)
 	var bytesRead int
 	conn.SetReadDeadline(time.Now().Add(s.timeOut))
 	bytesRead, err = bufconn.Read(rawResponse)
@@ -79,10 +79,10 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 		return
 	}
 
-	if infoType == EXTENDED_INFO {
+	if infoType == InfoTypeExtended {
 		var version, commandError byte
 
-		if command == EXTENDED_INFO_CLIENT_INFO {
+		if command == ExtInfoTypeClientInfo {
 			if bytesRead < 6 {
 				err = errors.New("extinfo: invalid response: too short")
 				return
@@ -100,16 +100,16 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 		}
 
 		// this package only support extinfo protocol version 105
-		if version != EXTENDED_INFO_VERSION {
-			err = errors.New("extinfo: wrong version: expected " + strconv.Itoa(int(EXTENDED_INFO_VERSION)) + ", got " + strconv.Itoa(int(version)))
+		if version != ExtInfoVersion {
+			err = errors.New("extinfo: wrong version: expected " + strconv.Itoa(int(ExtInfoVersion)) + ", got " + strconv.Itoa(int(version)))
 			return
 		}
 
-		if commandError == EXTENDED_INFO_ERROR {
+		if commandError == ExtInfoError {
 			switch command {
-			case EXTENDED_INFO_CLIENT_INFO:
+			case ExtInfoTypeClientInfo:
 				err = errors.New("extinfo: no client with cn " + strconv.Itoa(int(request[2])))
-			case EXTENDED_INFO_TEAMS_SCORES:
+			case ExtInfoTypeTeamScores:
 				err = errors.New("extinfo: server is not running a team mode")
 			}
 			return
@@ -117,14 +117,14 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 	}
 
 	// if not a response to EXTENDED_INFO_CLIENT_INFO, we are done
-	if infoType != EXTENDED_INFO || command != EXTENDED_INFO_CLIENT_INFO {
+	if infoType != InfoTypeExtended || command != ExtInfoTypeClientInfo {
 		offset := 0
 
-		if infoType == EXTENDED_INFO {
+		if infoType == InfoTypeExtended {
 			switch command {
-			case EXTENDED_INFO_UPTIME:
+			case ExtInfoTypeUptime:
 				offset = 4
-			case EXTENDED_INFO_TEAMS_SCORES:
+			case ExtInfoTypeTeamScores:
 				offset = 5
 			}
 		}
@@ -136,7 +136,7 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 	// handle response to EXTENDED_INFO_CLIENT_INFO
 
 	// some server mods silently fail to implement responses → fail gracefully
-	if len(rawResponse) < 7 || rawResponse[6] != EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS {
+	if len(rawResponse) < 7 || rawResponse[6] != ClientInfoResponseTypeCNs {
 		err = errors.New("extinfo: invalid response")
 		return
 	}
@@ -151,10 +151,10 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 	}
 
 	// for each client, receive a packet and append it to a new slice
-	clientInfos := make([]byte, 0, MAX_PACKET_SIZE*numberOfClients)
+	clientInfos := make([]byte, 0, MaxPacketLength*numberOfClients)
 	for i := 0; i < numberOfClients; i++ {
 		// read from connection
-		clientInfo := make([]byte, MAX_PACKET_SIZE)
+		clientInfo := make([]byte, MaxPacketLength)
 		conn.SetReadDeadline(time.Now().Add(s.timeOut))
 		_, err = bufconn.Read(clientInfo)
 		if err != nil {

@@ -30,7 +30,7 @@ type BasicInfo struct {
 // GetBasicInfoRaw queries a Sauerbraten server at addr on port and returns the raw response or an error in case something went wrong. Raw response means that the int values sent as game mode and master mode are NOT translated into the human readable name.
 func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 	var response *cubecode.Packet
-	response, err = s.queryServer(buildRequest(BASIC_INFO, 0, 0))
+	response, err = s.queryServer(buildRequest(InfoTypeBasic, 0, 0))
 	if err != nil {
 		return
 	}
