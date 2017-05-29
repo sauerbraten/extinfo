@@ -72,7 +72,7 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 	// response is multiple packets, one for each client
 	// parse each packet on its own and append to allClientInfo
 	clientInfoRaw := ClientInfoRaw{}
-	for i := 0; i < response.Len(); i += MaxPacketLength {
+	for response.HasRemaining() {
 		var partialResponse *cubecode.Packet
 		partialResponse, err = response.SubPacket(MaxPacketLength)
 		if err != nil {
