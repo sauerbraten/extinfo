@@ -21,7 +21,7 @@ type ClientInfoRaw struct {
 	Health    int    `json:"health"`    // remaining HP (health points)
 	Armour    int    `json:"armour"`    // remaining armour
 	Weapon    int    `json:"weapon"`    // weapon the client currently has selected
-	Privilege int    `json:"privilege"` // 0 ("none"), 1 ("master") or 2 ("admin")
+	Privilege int    `json:"privilege"` // 0 ("none"), 1 ("master"), 2 ("auth") or 3 ("admin")
 	State     int    `json:"state"`     // client state, e.g. 1 ("alive") or 5 ("spectator"), see names.go for int -> string mapping
 	IP        net.IP `json:"ip"`        // client IP (only the first 3 bytes)
 }
