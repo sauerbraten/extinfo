@@ -1,5 +1,9 @@
 package extinfo
 
+import (
+	"strconv"
+)
+
 // A slice containing the possible master modes
 // In the sauerbraten protocol, 'auth' is -1, 'open' is 0, and so forth. Therefore getModeName() returns MasterModeNames[modeInt+1]. MasterModeNames should not be used directly
 var masterModeNames = []string{"auth", "open", "veto", "locked", "private", "password"}
@@ -68,4 +72,22 @@ func getStateName(state int) string {
 	}
 
 	return stateNames[state]
+}
+
+// getServerModName returns the human readable name of the server mod as a string
+func getServerModName(mod int) string {
+	switch mod {
+	case -2:
+		return "hopmod"
+	case -4:
+		return "spaghettimod"
+	case -5:
+		return "suckerserv"
+	case -6:
+		return "remod"
+	case -8:
+		return "zeromod"
+	default:
+		return "unknown (" + strconv.Itoa(mod) + ")"
+	}
 }

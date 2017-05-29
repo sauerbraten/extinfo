@@ -35,13 +35,6 @@ func (s *Server) GetBasicInfoRaw() (basicInfoRaw BasicInfoRaw, err error) {
 		return
 	}
 
-	// first int is pong
-	_, err = response.ReadInt()
-	if err != nil {
-		err = errors.New("extinfo: error reading pong value: " + err.Error())
-		return
-	}
-
 	basicInfoRaw.NumberOfClients, err = response.ReadInt()
 	if err != nil {
 		err = errors.New("extinfo: error reading number of connected clients: " + err.Error())

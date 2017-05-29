@@ -63,91 +63,114 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 	// trim response to what's actually from the server
 	packet := cubecode.NewPacket(rawResponse[:bytesRead])
 
-	if bytesRead < 5 {
+	// response must include the entire request, ExtInfoAck, ExtInfoVersion, and either ExtInfoError or uptime
+	if bytesRead < len(request)+3 {
 		err = errors.New("extinfo: invalid response: too short")
 		return
 	}
-
-	// do some basic checks on the response
 
 	infoType, err := packet.ReadByte()
 	if err != nil {
 		return
 	}
-	command, err := packet.ReadByte() // only valid if infoType == EXTENDED_INFO
-	if err != nil {
+
+	// end of basic info response handling
+	if infoType == InfoTypeBasic {
+		response, err = packet.SubPacketFromRemaining()
 		return
 	}
 
-	if infoType == InfoTypeExtended {
-		var version, commandError byte
+	// make sure the entire request is correctly replayed
 
-		if command == ExtInfoTypeClientInfo {
-			if bytesRead < 6 {
-				err = errors.New("extinfo: invalid response: too short")
-				return
-			}
-			version = rawResponse[4]
-			commandError = rawResponse[5]
-		} else {
-			version = rawResponse[3]
-			commandError = rawResponse[4]
-		}
-
-		if infoType != request[0] || command != request[1] {
+	for i, b := range request {
+		if rawResponse[i] != b {
 			err = errors.New("extinfo: invalid response: response does not match request")
 			return
 		}
-
-		// this package only support extinfo protocol version 105
-		if version != ExtInfoVersion {
-			err = errors.New("extinfo: wrong version: expected " + strconv.Itoa(int(ExtInfoVersion)) + ", got " + strconv.Itoa(int(version)))
-			return
-		}
-
-		if commandError == ExtInfoError {
-			switch command {
-			case ExtInfoTypeClientInfo:
-				err = errors.New("extinfo: no client with cn " + strconv.Itoa(int(request[2])))
-			case ExtInfoTypeTeamScores:
-				err = errors.New("extinfo: server is not running a team mode")
-			}
-			return
-		}
 	}
 
-	// if not a response to EXTENDED_INFO_CLIENT_INFO, we are done
-	if infoType != InfoTypeExtended || command != ExtInfoTypeClientInfo {
-		offset := 0
-
-		if infoType == InfoTypeExtended {
-			switch command {
-			case ExtInfoTypeUptime:
-				offset = 4
-			case ExtInfoTypeTeamScores:
-				offset = 5
-			}
-		}
-
-		response = cubecode.NewPacket(rawResponse[offset:])
-		return
-	}
-
-	// handle response to EXTENDED_INFO_CLIENT_INFO
-
-	// some server mods silently fail to implement responses → fail gracefully
-	if len(rawResponse) < 7 || rawResponse[6] != ClientInfoResponseTypeCNs {
-		err = errors.New("extinfo: invalid response")
-		return
-	}
-
-	// get CNs out of the reponse, ignore 7 first bytes, which were:
-	// EXTENDED_INFO, EXTENDED_INFO_CLIENT_INFO, CN from request, EXTENDED_INFO_ACK, EXTENDED_INFO_VERSION, EXTENDED_INFO_NO_ERROR, EXTENDED_INFO_CLIENT_INFO_RESPONSE_CNS
-	clientNums := rawResponse[7:]
-
-	numberOfClients, err := countClientNums(clientNums)
+	command, err := packet.ReadByte()
 	if err != nil {
 		return
+	}
+
+	// skip rest of request
+	for i := 2; i < len(request); i++ {
+		_, err = packet.ReadByte()
+		if err != nil {
+			return
+		}
+	}
+
+	// validate ack
+	ack, err := packet.ReadByte()
+	if err != nil {
+		return
+	}
+	if ack != ExtInfoACK {
+		err = errors.New("extinfo: invalid response: expected " + strconv.Itoa(int(ExtInfoACK)) + " (ACK), got " + strconv.Itoa(int(ack)))
+		return
+	}
+
+	// validate version
+	version, err := packet.ReadByte()
+	if err != nil {
+		return
+	}
+	// this package only supports protocol version 105
+	if version != ExtInfoVersion {
+		err = errors.New("extinfo: wrong version: expected " + strconv.Itoa(int(ExtInfoVersion)) + ", got " + strconv.Itoa(int(version)))
+		return
+	}
+
+	// end of uptime request handling
+	if command == ExtInfoTypeUptime {
+		response, err = packet.SubPacketFromRemaining()
+		return
+	}
+
+	commandError, err := packet.ReadByte()
+	if err != nil {
+		return
+	}
+
+	if commandError == ExtInfoError {
+		switch command {
+		case ExtInfoTypeClientInfo:
+			err = errors.New("extinfo: no client with cn " + strconv.Itoa(int(request[2])))
+		case ExtInfoTypeTeamScores:
+			err = errors.New("extinfo: server is not running a team mode")
+		}
+		return
+	}
+
+	// end of team scores request handling
+	if command == ExtInfoTypeTeamScores {
+		response, err = packet.SubPacketFromRemaining()
+		return
+	}
+
+	// handle response to ExtInfoTypeClientInfo
+
+	// some server mods silently fail to implement responses → fail gracefully
+	clientNumsHeader, err := packet.ReadByte()
+	if err != nil {
+		return
+	}
+	if clientNumsHeader != ClientInfoResponseTypeCNs {
+		err = errors.New("extinfo: invalid response: expected " + strconv.Itoa(int(ExtInfoVersion)) + ", got " + strconv.Itoa(int(version)))
+		return
+	}
+
+	// count (but discard) CNs
+	numberOfClients := 0
+	for packet.HasRemaining() {
+		_, err = packet.ReadInt()
+		if err != nil {
+			return
+		}
+
+		numberOfClients++
 	}
 
 	// for each client, receive a packet and append it to a new slice
@@ -166,20 +189,5 @@ func (s *Server) queryServer(request []byte) (response *cubecode.Packet, err err
 	}
 
 	response = cubecode.NewPacket(clientInfos)
-	return
-}
-
-func countClientNums(buf []byte) (count int, err error) {
-	p := cubecode.NewPacket(buf)
-
-	for p.HasRemaining() {
-		_, err = p.ReadInt()
-		if err != nil {
-			return
-		}
-
-		count++
-	}
-
 	return
 }

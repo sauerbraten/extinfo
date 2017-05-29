@@ -74,7 +74,7 @@ func (s *Server) GetAllClientInfo() (allClientInfo map[int]ClientInfo, err error
 	clientInfoRaw := ClientInfoRaw{}
 	for i := 0; i < response.Len(); i += MaxPacketLength {
 		var partialResponse *cubecode.Packet
-		partialResponse, err = response.SubPacket(i, i+MaxPacketLength)
+		partialResponse, err = response.SubPacket(MaxPacketLength)
 		if err != nil {
 			return
 		}
