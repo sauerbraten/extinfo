@@ -79,12 +79,16 @@ func getServerModName(mod int) string {
 	switch mod {
 	case -2:
 		return "hopmod"
+	case -3:
+		return "oomod"
 	case -4:
 		return "spaghettimod"
 	case -5:
 		return "suckerserv"
 	case -6:
 		return "remod"
+	case -7:
+		return "noobmod"
 	case -8:
 		return "zeromod"
 	default:
