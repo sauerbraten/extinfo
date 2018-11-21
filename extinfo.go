@@ -3,7 +3,6 @@ package extinfo
 
 import (
 	"net"
-	"strconv"
 	"time"
 )
 
@@ -41,14 +40,15 @@ type Server struct {
 }
 
 // NewServer returns a Server to query information from.
-func NewServer(host string, port int, timeOut time.Duration) (*Server, error) {
-	addr, err := net.ResolveUDPAddr("udp", host+":"+strconv.Itoa(port+1))
+func NewServer(addr net.UDPAddr, timeOut time.Duration) (*Server, error) {
+	addr.Port++
+	_addr, err := net.ResolveUDPAddr("udp", addr.String())
 	if err != nil {
 		return nil, err
 	}
 
 	return &Server{
-		addr:    addr,
+		addr:    _addr,
 		timeOut: timeOut,
 	}, nil
 }
