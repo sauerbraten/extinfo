@@ -118,6 +118,8 @@ func getServerModName(mod int) string {
 		return "noobmod"
 	case -8:
 		return "zeromod"
+	case -9:
+		return "waiter"
 	default:
 		return "unknown (" + strconv.Itoa(mod) + ")"
 	}
