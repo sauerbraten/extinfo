@@ -21,12 +21,12 @@ func (s *Server) GetServerMod() (serverMod string, err error) {
 	// try to read one more byte
 	mod, err := response.ReadInt()
 
-	// if there is none, it's not a detectable mod
+	// if there is none, it's not a detectable mod (probably vanilla), so we will return ""
 	if err == cubecode.ErrBufferTooShort {
 		err = nil
+	} else if err == nil {
+		serverMod = getServerModName(mod)
 	}
-
-	serverMod = getServerModName(mod)
 
 	return
 }
