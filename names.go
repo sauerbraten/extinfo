@@ -120,6 +120,8 @@ func getServerModName(mod int) string {
 		return "zeromod"
 	case -9:
 		return "p1xbraten"
+	case -10:
+		return "sour"
 	default:
 		return "unknown (" + strconv.Itoa(mod) + ")"
 	}

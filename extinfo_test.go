@@ -2,6 +2,7 @@ package extinfo
 
 import (
 	"log"
+	"net"
 	"testing"
 	"time"
 )
@@ -9,8 +10,11 @@ import (
 var srv *Server
 
 func init() {
-	var err error
-	srv, err = NewServer("localhost", 28785, 5*time.Second)
+	addr, err := net.ResolveUDPAddr("udp", "localhost:28785")
+	if err != nil {
+		panic(err)
+	}
+	srv, err = NewServer(*addr, 5*time.Second)
 	if err != nil {
 		panic(err)
 	}
